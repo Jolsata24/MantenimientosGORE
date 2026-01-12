@@ -4,7 +4,7 @@ include 'conexion.php';
 session_start();
 
 // 1. LÓGICA HÍBRIDA:
-// Verificamos si el usuario ya inició sesión, pero NO lo obligamos.
+// Verificamos si el usuario ya inició sesión (Admin) o es público (QR)
 $es_admin = (isset($_SESSION['logeado']) && $_SESSION['logeado'] === true);
 
 // 2. Obtener ID del bien
@@ -112,7 +112,7 @@ $res_historial = $conn->query($sql_historial);
                         <h5 class="fw-bold text-dark m-0"><i class="fas fa-history text-primary me-2"></i>Historial</h5>
                         
                         <?php if($es_admin): ?>
-                            <button class="btn btn-sm btn-outline-primary rounded-pill">
+                            <button class="btn btn-sm btn-outline-primary rounded-pill" data-bs-toggle="modal" data-bs-target="#modalReporte">
                                 <i class="fas fa-plus"></i> <span class="d-none d-sm-inline">Reportar Incidente</span>
                             </button>
                         <?php endif; ?>
@@ -125,7 +125,7 @@ $res_historial = $conn->query($sql_historial);
                                     <div class="timeline-dot"></div>
                                     <div class="timeline-date">
                                         <i class="far fa-calendar-alt me-1"></i>
-                                        <?php echo date("d/m/Y h:i A", strtotime($row['fecha_realizacion'])); ?>
+                                        <?php echo date("d/m/Y", strtotime($row['fecha_realizacion'])); ?>
                                     </div>
                                     <div class="timeline-title"><?php echo $row['tipo_evento']; ?></div>
                                     <p class="text-muted mb-1 small"><?php echo $row['detalle_tecnico']; ?></p>
@@ -161,6 +161,58 @@ $res_historial = $conn->query($sql_historial);
                 </div>
             </div>
 
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalReporte" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="fas fa-tools me-2"></i>Reportar Incidente</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="procesos/guardar_mantenimiento.php" method="POST">
+                    <input type="hidden" name="id_bien" value="<?php echo $id_bien; ?>">
+                    
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">TIPO DE EVENTO</label>
+                            <select name="tipo_evento" class="form-select" required>
+                                <option value="Mantenimiento Preventivo">Mantenimiento Preventivo</option>
+                                <option value="Mantenimiento Correctivo">Mantenimiento Correctivo</option>
+                                <option value="Falla Reportada">Falla Reportada</option>
+                                <option value="Instalación de Software">Instalación de Software</option>
+                                <option value="Cambio de Componente">Cambio de Componente</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">FECHA DEL SUCESO</label>
+                            <input type="date" name="fecha" class="form-control" value="<?php echo date('Y-m-d'); ?>" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">DETALLE TÉCNICO</label>
+                            <textarea name="detalle" class="form-control" rows="3" placeholder="Describa el trabajo realizado o la falla..." required></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small text-muted">TÉCNICO RESPONSABLE</label>
+                                <input type="text" name="tecnico" class="form-control" placeholder="Nombre del técnico" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small text-muted">COSTO (S/)</label>
+                                <input type="number" step="0.01" name="costo" class="form-control" placeholder="0.00">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger">Guardar Reporte</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
