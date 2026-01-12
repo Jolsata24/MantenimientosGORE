@@ -1,11 +1,17 @@
 <?php
 // index.php
 include 'conexion.php';
+session_start(); // ¡Importante para seguridad!
 
-// Definimos la página actual para pintar el menú
+// Verificar si está logeado (Seguridad básica)
+if (!isset($_SESSION['logeado']) || $_SESSION['logeado'] !== true) {
+    header("Location: login.php");
+    exit();
+}
+
 $page = 'dashboard';
 
-// CONSULTAS RÁPIDAS
+// CONSULTAS SQL
 $sql_total = "SELECT COUNT(*) as total FROM bienes";
 $row_total = $conn->query($sql_total)->fetch_assoc();
 
@@ -22,81 +28,104 @@ $row_cat = $conn->query($sql_cat)->fetch_assoc();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | GORE Pasco</title>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        body { background-color: #f4f6f9; }
-        .card-kpi { border: none; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s; }
-        .card-kpi:hover { transform: translateY(-5px); }
-        .icon-box { font-size: 2.5rem; opacity: 0.8; }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
 
     <?php include 'sidebar.php'; ?>
 
     <div class="main-content">
-        
         <div class="container-fluid">
-            <h2 class="mb-4 text-dark border-bottom pb-2">Tablero de Control</h2>
+            
+            <div class="d-flex justify-content-between align-items-center page-header">
+                <h2 class="fw-bold mb-0">Tablero de Control</h2>
+                <span class="text-muted small">
+                    <i class="far fa-calendar-alt me-1"></i> <?php echo date("d/m/Y"); ?>
+                </span>
+            </div>
 
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <div class="card card-kpi bg-primary text-white h-100">
-                        <div class="card-body d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5 class="card-title">Total Activos</h5>
-                                <h1 class="display-4 fw-bold"><?php echo $row_total['total']; ?></h1>
-                            </div>
-                            <div class="icon-box"><i class="fas fa-laptop"></i></div>
+            <div class="row g-4">
+                
+                <div class="col-md-4">
+                    <div class="card kpi-card kpi-azul h-100">
+                        <div class="card-body p-4">
+                            <div class="kpi-label">Total Activos</div>
+                            <div class="kpi-value"><?php echo $row_total['total']; ?></div>
+                            <i class="fas fa-laptop icon-bg"></i>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-md-4 mb-3">
-                    <div class="card card-kpi bg-danger text-white h-100">
-                        <div class="card-body d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5 class="card-title">Estado Crítico</h5>
-                                <h1 class="display-4 fw-bold"><?php echo $row_malo['total']; ?></h1>
-                            </div>
-                            <div class="icon-box"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="col-md-4">
+                    <div class="card kpi-card kpi-rojo h-100">
+                        <div class="card-body p-4">
+                            <div class="kpi-label">Para Mantenimiento</div>
+                            <div class="kpi-value"><?php echo $row_malo['total']; ?></div>
+                            <i class="fas fa-tools icon-bg"></i>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-md-4 mb-3">
-                    <div class="card card-kpi bg-success text-white h-100">
-                        <div class="card-body d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5 class="card-title">Categorías</h5>
-                                <h1 class="display-4 fw-bold"><?php echo $row_cat['total']; ?></h1>
-                            </div>
-                            <div class="icon-box"><i class="fas fa-boxes"></i></div>
+                <div class="col-md-4">
+                    <div class="card kpi-card kpi-dorado h-100">
+                        <div class="card-body p-4">
+                            <div class="kpi-label">Categorías</div>
+                            <div class="kpi-value"><?php echo $row_cat['total']; ?></div>
+                            <i class="fas fa-layer-group icon-bg"></i>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="row mt-4">
-                <div class="col-md-8">
-                    <div class="card shadow-sm">
-                        <div class="card-header bg-white fw-bold">Rendimiento Mensual</div>
+            <div class="row mt-4 g-4">
+                
+                <div class="col-lg-8">
+                    <div class="card content-card">
+                        <div class="card-header-custom">
+                            <i class="fas fa-chart-area me-2"></i> Resumen de Movimientos
+                        </div>
                         <div class="card-body text-center py-5">
-                            <i class="fas fa-chart-area fa-3x text-muted mb-3"></i>
-                            <p class="text-muted">Aquí podrías integrar Chart.js más adelante para ver estadísticas reales.</p>
+                            <i class="fas fa-chart-bar fa-3x text-muted opacity-25 mb-3"></i>
+                            <p class="text-muted">No hay movimientos recientes para mostrar en el gráfico.</p>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="card shadow-sm">
-                        <div class="card-header bg-white fw-bold">Accesos Directos</div>
-                        <div class="list-group list-group-flush">
-                            <a href="inventario.php" class="list-group-item list-group-item-action"><i class="fas fa-list me-2"></i> Ver Inventario Completo</a>
-                            <a href="#" class="list-group-item list-group-item-action"><i class="fas fa-print me-2"></i> Reporte PDF</a>
+
+                <div class="col-lg-4">
+                    <div class="card content-card">
+                        <div class="card-header-custom">
+                            <i class="fas fa-bolt me-2 text-warning"></i> Accesos Directos
+                        </div>
+                        <div class="list-group list-group-flush shortcut-list">
+                            <a href="inventario.php" class="list-group-item list-group-item-action">
+                                <div class="d-flex align-items-center">
+                                    <div class="shortcut-icon"><i class="fas fa-list"></i></div>
+                                    <span>Ver Inventario</span>
+                                </div>
+                                <i class="fas fa-chevron-right small"></i>
+                            </a>
+                            <a href="reportes.php" class="list-group-item list-group-item-action">
+                                <div class="d-flex align-items-center">
+                                    <div class="shortcut-icon"><i class="fas fa-file-pdf"></i></div>
+                                    <span>Generar Reportes</span>
+                                </div>
+                                <i class="fas fa-chevron-right small"></i>
+                            </a>
+                            <a href="personal.php" class="list-group-item list-group-item-action">
+                                <div class="d-flex align-items-center">
+                                    <div class="shortcut-icon"><i class="fas fa-users"></i></div>
+                                    <span>Gestionar Personal</span>
+                                </div>
+                                <i class="fas fa-chevron-right small"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
+
             </div>
 
         </div>

@@ -1,0 +1,113 @@
+/* css/estilos.css */
+
+:root {
+    /* --- PALETA DE COLORES GORE PASCO --- */
+    --color-gore-azul: #00589b;   /* Azul del anillo del logo */
+    --color-gore-dorado: #fdb913; /* Amarillo del mapa */
+    --color-gore-oscuro: #1a1a1a; /* Texto oscuro */
+    --color-fondo: #f4f6f9;       /* Gris muy suave para el fondo */
+    --ancho-sidebar: 260px;
+}
+
+body {
+    background-color: var(--color-fondo);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #444;
+}
+
+/* --- SIDEBAR (MENÚ LATERAL) --- */
+.sidebar-container {
+    width: var(--ancho-sidebar);
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    /* Degradado sutil usando el azul institucional */
+    background: linear-gradient(180deg, var(--color-gore-azul) 0%, #004070 100%);
+    box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.sidebar-logo-area {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.nav-link {
+    color: rgba(255,255,255,0.8) !important;
+    margin: 5px 15px;
+    border-radius: 8px;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.nav-link:hover {
+    background-color: rgba(255,255,255,0.2);
+    color: #fff !important;
+    transform: translateX(5px);
+}
+
+/* Estado Activo: Usamos el dorado para resaltar dónde estás */
+.nav-link.active {
+    background-color: var(--color-gore-dorado) !important;
+    color: #333 !important; /* Texto oscuro para contraste con amarillo */
+    font-weight: bold;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+/* --- CONTENIDO PRINCIPAL --- */
+.main-content {
+    margin-left: var(--ancho-sidebar);
+    padding: 30px;
+    width: calc(100% - var(--ancho-sidebar));
+    min-height: 100vh;
+    transition: all 0.3s;
+}
+
+/* --- TARJETAS (CARDS) --- */
+.card-gore {
+    border: none;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
+}
+.card-gore:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+/* Tarjetas KPI (Dashboard) */
+.card-kpi-azul { background: linear-gradient(45deg, var(--color-gore-azul), #007bff); color: white; }
+.card-kpi-dorado { background: linear-gradient(45deg, #f09819, var(--color-gore-dorado)); color: white; }
+.card-kpi-rojo { background: linear-gradient(45deg, #cb2d3e, #ef473a); color: white; }
+
+/* --- BOTONES PERSONALIZADOS --- */
+.btn-gore-primary {
+    background-color: var(--color-gore-azul);
+    color: white;
+    border: none;
+}
+.btn-gore-primary:hover {
+    background-color: #004070;
+    color: white;
+}
+
+.btn-gore-warning {
+    background-color: var(--color-gore-dorado);
+    color: #333;
+    font-weight: bold;
+    border: none;
+}
+.btn-gore-warning:hover {
+    background-color: #e0a800;
+}
+
+/* --- RESPONSIVE (MÓVIL) --- */
+@media (max-width: 768px) {
+    .sidebar-container { margin-left: -260px; }
+    .main-content { margin-left: 0; width: 100%; }
+    .sidebar-active { margin-left: 0; } /* Clase para JS si agregas botón menú */
+}

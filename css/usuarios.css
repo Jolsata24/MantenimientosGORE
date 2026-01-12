@@ -1,0 +1,142 @@
+/* css/usuarios.css */
+
+:root {
+    --gore-azul: #00609C;
+    --gore-dorado: #FDB913;
+    --gore-rojo: #D32F2F;
+    --gore-verde: #2E7D32;
+    --texto-gris: #555;
+    --fondo-gris: #f4f6f9;
+}
+
+body {
+    background-color: var(--fondo-gris);
+}
+
+/* --- ENCABEZADO --- */
+.page-header {
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.titulo-seccion {
+    color: #343a40;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+/* --- BOTÓN NUEVO USUARIO --- */
+.btn-nuevo {
+    background-color: var(--gore-azul);
+    color: white;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+    box-shadow: 0 4px 6px rgba(0,96,156, 0.2);
+}
+
+.btn-nuevo:hover {
+    background-color: var(--gore-dorado);
+    color: #333;
+    transform: translateY(-2px);
+}
+
+/* --- TARJETA DE LA TABLA --- */
+.card-tabla {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    background-color: white;
+    overflow: hidden;
+}
+
+/* Estilos de Tabla DataTables */
+.table thead th {
+    background-color: #f8f9fa;
+    color: var(--gore-azul);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    border-bottom: 2px solid var(--gore-azul);
+    padding: 15px;
+}
+
+.table tbody td {
+    padding: 15px;
+    vertical-align: middle;
+    color: var(--texto-gris);
+    border-bottom: 1px solid #f1f1f1;
+}
+
+/* --- AVATAR DE USUARIO --- */
+.avatar-usuario {
+    width: 45px;
+    height: 45px;
+    border-radius: 12px; /* Cuadrado redondeado para diferenciar de personal */
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    color: var(--gore-azul);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    margin-right: 15px;
+    font-size: 1.1rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* --- BADGES DE ROL --- */
+.badge-rol {
+    padding: 6px 15px;
+    border-radius: 30px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Administrador: Dorado (Poder) */
+.rol-admin { 
+    background-color: #FFF8E1; 
+    color: #F57F17; 
+    border: 1px solid #FFE082; 
+}
+
+/* Lector: Azul (Información) */
+.rol-lector { 
+    background-color: #E3F2FD; 
+    color: #1976D2; 
+    border: 1px solid #90CAF9; 
+}
+
+/* --- BOTONES DE ACCIÓN --- */
+.btn-action {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s;
+    background-color: transparent;
+    border: 1px solid transparent;
+    color: #777;
+}
+
+.btn-key:hover { background-color: #fff3e0; color: #f57f17; } /* Llave naranja */
+.btn-delete:hover { background-color: #ffebee; color: var(--gore-rojo); } /* Basurero rojo */
+
+/* --- MODAL --- */
+.modal-header-gore {
+    background-color: var(--gore-azul);
+    color: white;
+    border-bottom: 4px solid var(--gore-dorado);
+}

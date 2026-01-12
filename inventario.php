@@ -1,8 +1,14 @@
 <?php
 // inventario.php
 include 'conexion.php';
+session_start();
 
-$page = 'inventario'; // Variable para iluminar el menú lateral
+if (!isset($_SESSION['logeado']) || $_SESSION['logeado'] !== true) {
+    header("Location: login.php");
+    exit();
+}
+
+$page = 'inventario';
 
 $sql = "SELECT b.*, c.nombre as nombre_categoria 
         FROM bienes b 
@@ -21,14 +27,8 @@ $resultado = $conn->query($sql);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
-
-    <style>
-        body { background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
-        .main-card { border-radius: 15px; border: none; }
-        .btn-gore { background-color: #8B0000; color: white; border: none; }
-        .btn-gore:hover { background-color: #a00000; color: white; }
-        .status-badge { font-size: 0.85rem; padding: 5px 10px; border-radius: 20px; }
-    </style>
+    
+    <link rel="stylesheet" href="css/inventario.css">
 </head>
 <body>
 
@@ -37,61 +37,82 @@ $resultado = $conn->query($sql);
     <div class="main-content">
         <div class="container-fluid">
             
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h2 class="fw-bold text-dark">Gestión de Inventario</h2>
-                    <p class="text-muted">Lista maestra de activos fijos</p>
-                </div>
-                <button class="btn btn-gore shadow-sm py-2 px-4" data-bs-toggle="modal" data-bs-target="#modalNuevo">
+            <div class="page-header">
+                <h2 class="titulo-seccion">
+                    <i class="fas fa-boxes text-secondary me-2 opacity-50"></i> Gestión de Inventario
+                </h2>
+                <button class="btn-nuevo" data-bs-toggle="modal" data-bs-target="#modalNuevo">
                     <i class="fas fa-plus-circle me-2"></i> Nuevo Activo
                 </button>
             </div>
 
-            <div class="card main-card shadow-lg p-3 mb-5 bg-body rounded">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table id="tablaInventario" class="table table-hover align-middle w-100">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Código</th>
-                                    <th>Descripción</th>
-                                    <th>Marca/Modelo</th>
-                                    <th>Categoría</th>
-                                    <th>Estado</th>
-                                    <th class="text-center">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php while($fila = $resultado->fetch_assoc()): ?>
-                                <tr>
-                                    <td class="fw-bold text-primary">
-                                        <i class="fas fa-qrcode text-dark me-1"></i> <?php echo $fila['codigo_patrimonial']; ?>
-                                    </td>
-                                    <td><?php echo $fila['descripcion']; ?></td>
-                                    <td>
-                                        <?php if($fila['marca']): ?> <small class="d-block text-muted"><strong>M:</strong> <?php echo $fila['marca']; ?></small> <?php endif; ?>
-                                        <?php if($fila['modelo']): ?> <small class="d-block text-muted"><strong>Mod:</strong> <?php echo $fila['modelo']; ?></small> <?php endif; ?>
-                                    </td>
-                                    <td><span class="badge bg-light text-dark border"><?php echo $fila['nombre_categoria']; ?></span></td>
-                                    <td>
-                                        <?php 
-                                        $clase = 'bg-success';
-                                        if($fila['estado_fisico'] == 'Regular') $clase = 'bg-warning text-dark';
-                                        if($fila['estado_fisico'] == 'Malo') $clase = 'bg-danger';
-                                        ?>
-                                        <span class="badge <?php echo $clase; ?> status-badge"><?php echo $fila['estado_fisico']; ?></span>
-                                    </td>
-                                    <td class="text-center">
-                                        <div class="btn-group" role="group">
-                                            <a href="ver_activo.php?id=<?php echo $fila['id_bien']; ?>" class="btn btn-sm btn-outline-primary" title="Ver"><i class="fas fa-eye"></i></a>
-                                            <button class="btn btn-sm btn-outline-warning text-dark"><i class="fas fa-pen"></i></button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <?php endwhile; ?>
-                            </tbody>
-                        </table>
-                    </div>
+            <div class="card card-tabla bg-white p-3">
+                <div class="table-responsive">
+                    <table id="tablaInventario" class="table align-middle w-100">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Descripción</th>
+                                <th>Detalles Técnicos</th>
+                                <th>Categoría</th>
+                                <th>Estado</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php while($fila = $resultado->fetch_assoc()): ?>
+                            <tr>
+                                <td class="fw-bold" style="color: var(--gore-azul);">
+                                    <i class="fas fa-barcode me-1 text-muted"></i> <?php echo $fila['codigo_patrimonial']; ?>
+                                </td>
+                                <td><?php echo $fila['descripcion']; ?></td>
+                                <td>
+                                    <?php if($fila['marca']): ?> 
+                                        <div class="small"><span class="fw-bold">Marca:</span> <?php echo $fila['marca']; ?></div>
+                                    <?php endif; ?>
+                                    <?php if($fila['modelo']): ?> 
+                                        <div class="small"><span class="fw-bold">Modelo:</span> <?php echo $fila['modelo']; ?></div>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">
+                                        <?php echo $fila['nombre_categoria']; ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <?php 
+                                    // Lógica para las clases de color
+                                    $clase_estado = 'estado-bueno'; // Default (Verde)
+                                    $icono = 'fa-check-circle';
+                                    
+                                    if($fila['estado_fisico'] == 'Regular') {
+                                        $clase_estado = 'estado-regular'; // Amarillo
+                                        $icono = 'fa-exclamation-circle';
+                                    }
+                                    if($fila['estado_fisico'] == 'Malo' || $fila['estado_fisico'] == 'Baja') {
+                                        $clase_estado = 'estado-malo'; // Rojo
+                                        $icono = 'fa-times-circle';
+                                    }
+                                    ?>
+                                    <span class="badge-estado <?php echo $clase_estado; ?>">
+                                        <i class="fas <?php echo $icono; ?> me-1"></i> <?php echo $fila['estado_fisico']; ?>
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <a href="ver_activo.php?id=<?php echo $fila['id_bien']; ?>" class="btn-action btn-ver" title="Ver Ficha">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button class="btn-action btn-editar" title="Editar">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
+                                    <button class="btn-action btn-qr" title="Imprimir QR">
+                                        <i class="fas fa-qrcode"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -101,17 +122,61 @@ $resultado = $conn->query($sql);
     <div class="modal fade" id="modalNuevo" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header bg-dark text-white">
-                    <h5 class="modal-title">Registrar Nuevo Activo</h5>
+                <div class="modal-header modal-header-gore">
+                    <h5 class="modal-title"><i class="fas fa-box-open me-2"></i>Registrar Nuevo Activo</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <form action="procesos/guardar_bien.php" method="POST">
-                    <div class="modal-body">
-                        <div class="alert alert-info">Asegúrate de copiar los campos del formulario anterior aquí.</div>
-                         </div>
-                    <div class="modal-footer">
+                    <div class="modal-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-muted">CÓDIGO PATRIMONIAL</label>
+                                <input type="text" name="codigo" class="form-control" placeholder="Ej. GORE-PC-2026-001" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-muted">CATEGORÍA</label>
+                                <select name="categoria" class="form-select" required>
+                                    <option value="1">Computadoras</option>
+                                    <option value="2">Mobiliario</option>
+                                    <option value="3">Vehículos</option>
+                                    <option value="4">Equipos Varios</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-bold small text-muted">DESCRIPCIÓN DEL BIEN</label>
+                                <input type="text" name="descripcion" class="form-control" placeholder="Ej. Laptop HP Core i7 16GB RAM..." required>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold small text-muted">MARCA</label>
+                                <input type="text" name="marca" class="form-control">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold small text-muted">MODELO</label>
+                                <input type="text" name="modelo" class="form-control">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold small text-muted">N° SERIE</label>
+                                <input type="text" name="serie" class="form-control">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-muted">ESTADO INICIAL</label>
+                                <select name="estado" class="form-select">
+                                    <option value="Nuevo">Nuevo</option>
+                                    <option value="Bueno" selected>Bueno</option>
+                                    <option value="Regular">Regular</option>
+                                    <option value="Malo">Malo</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-gore">Guardar</button>
+                        <button type="submit" class="btn btn-nuevo">
+                            <i class="fas fa-save me-2"></i> Guardar y Generar QR
+                        </button>
                     </div>
                 </form>
             </div>
@@ -124,7 +189,12 @@ $resultado = $conn->query($sql);
     <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
     <script>
         $(document).ready(function () {
-            $('#tablaInventario').DataTable({ language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' } });
+            $('#tablaInventario').DataTable({ 
+                language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' },
+                // Opciones para quitar elementos si quieres una tabla más limpia
+                lengthChange: false, 
+                pageLength: 8
+            });
         });
     </script>
 </body>

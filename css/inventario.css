@@ -1,0 +1,128 @@
+/* css/inventario.css */
+
+:root {
+    --gore-azul: #00609C;
+    --gore-dorado: #FDB913;
+    --gore-rojo: #D32F2F;
+    --gore-verde: #2E7D32;
+    --texto-gris: #555;
+}
+
+body {
+    background-color: #f4f6f9;
+}
+
+/* --- ENCABEZADO DE PÁGINA --- */
+.page-header {
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.titulo-seccion {
+    color: #343a40;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+/* --- BOTÓN PRINCIPAL (NUEVO ACTIVO) --- */
+.btn-nuevo {
+    background-color: var(--gore-azul);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+    box-shadow: 0 4px 6px rgba(0,96,156, 0.2);
+}
+
+.btn-nuevo:hover {
+    background-color: var(--gore-dorado);
+    color: #333;
+    transform: translateY(-2px);
+}
+
+/* --- TABLA DE DATOS (DataTables) --- */
+.card-tabla {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    overflow: hidden; /* Para que los bordes redondeados no se corten */
+}
+
+/* Encabezado de la tabla */
+.table thead th {
+    background-color: #f8f9fa;
+    color: var(--gore-azul);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    border-bottom: 2px solid var(--gore-azul);
+    padding: 15px;
+}
+
+.table tbody td {
+    padding: 15px;
+    vertical-align: middle;
+    color: var(--texto-gris);
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.table tbody tr:hover {
+    background-color: #fcfcfc;
+}
+
+/* --- BADGES DE ESTADO (ETIQUETAS) --- */
+.badge-estado {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.estado-bueno { background-color: #e8f5e9; color: var(--gore-verde); border: 1px solid #c8e6c9; }
+.estado-regular { background-color: #fff8e1; color: #f57f17; border: 1px solid #ffecb3; }
+.estado-malo { background-color: #ffebee; color: var(--gore-rojo); border: 1px solid #ffcdd2; }
+
+/* --- BOTONES DE ACCIÓN (Ojo, Lápiz, QR) --- */
+.btn-action {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    background-color: transparent;
+    color: #999;
+}
+
+.btn-ver:hover { background-color: #e3f2fd; color: var(--gore-azul); border-color: #bbdefb; }
+.btn-editar:hover { background-color: #fff3e0; color: #f57f17; border-color: #ffe0b2; }
+.btn-qr:hover { background-color: #212529; color: white; border-color: #212529; }
+
+/* --- PERSONALIZACIÓN PAGINACIÓN DATATABLES --- */
+.page-item.active .page-link {
+    background-color: var(--gore-azul) !important;
+    border-color: var(--gore-azul) !important;
+}
+.page-link {
+    color: var(--gore-azul) !important;
+}
+
+/* --- MODAL (VENTANA EMERGENTE) --- */
+.modal-header-gore {
+    background-color: var(--gore-azul);
+    color: white;
+    border-bottom: 4px solid var(--gore-dorado);
+}
+.modal-title { font-weight: 700; }
+.btn-close-white { filter: invert(1); } /* X blanca para cerrar */  

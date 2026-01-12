@@ -1,0 +1,139 @@
+/* css/index.css */
+
+:root {
+    --gore-azul: #00609C;   /* Azul Institucional */
+    --gore-dorado: #FDB913; /* Amarillo Mapa */
+    --gore-rojo: #D32F2F;   /* Rojo para Alertas */
+    --texto-gris: #6c757d;
+}
+
+body {
+    background-color: #f4f6f9;
+}
+
+/* --- TÍTULO PRINCIPAL --- */
+.page-header {
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 10px;
+    margin-bottom: 30px;
+    color: #343a40;
+}
+
+/* --- TARJETAS KPI (INDICADORES) --- */
+.kpi-card {
+    border: none;
+    border-radius: 15px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    min-height: 140px;
+}
+
+.kpi-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+/* Degradados Personalizados */
+.kpi-azul {
+    background: linear-gradient(135deg, var(--gore-azul) 0%, #004070 100%);
+}
+
+.kpi-rojo {
+    background: linear-gradient(135deg, var(--gore-rojo) 0%, #b71c1c 100%);
+}
+
+.kpi-dorado {
+    background: linear-gradient(135deg, var(--gore-dorado) 0%, #FF8F00 100%);
+    color: #fff; /* Ojo: El dorado a veces requiere texto oscuro, pero en gradiente oscuro va bien blanco */
+}
+
+/* Iconos Gigantes de Fondo */
+.icon-bg {
+    position: absolute;
+    right: 15px;
+    bottom: 10px;
+    font-size: 5rem;
+    opacity: 0.2;
+    transform: rotate(-15deg);
+    transition: all 0.3s ease;
+}
+
+.kpi-card:hover .icon-bg {
+    transform: rotate(0deg) scale(1.1);
+    opacity: 0.3;
+}
+
+.kpi-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0;
+    z-index: 2;
+    position: relative;
+}
+
+.kpi-label {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.85rem;
+    opacity: 0.9;
+    z-index: 2;
+    position: relative;
+}
+
+/* --- TARJETAS SECUNDARIAS (GRÁFICOS Y ACCESOS) --- */
+.content-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    background-color: white;
+    height: 100%;
+}
+
+.card-header-custom {
+    background-color: white;
+    border-bottom: 1px solid #f0f0f0;
+    padding: 15px 20px;
+    font-weight: 700;
+    color: var(--gore-azul);
+    display: flex;
+    align-items: center;
+}
+
+/* Lista de Accesos Directos */
+.shortcut-list .list-group-item {
+    border: none;
+    border-bottom: 1px solid #f0f0f0;
+    padding: 15px 20px;
+    transition: background 0.2s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--texto-gris);
+}
+
+.shortcut-list .list-group-item:hover {
+    background-color: #f8f9fa;
+    color: var(--gore-azul);
+    text-decoration: none;
+    padding-left: 25px; /* Efecto de movimiento a la derecha */
+}
+
+.shortcut-icon {
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #eef2f7;
+    border-radius: 8px;
+    color: var(--gore-azul);
+    margin-right: 15px;
+    transition: all 0.2s;
+}
+
+.shortcut-list .list-group-item:hover .shortcut-icon {
+    background-color: var(--gore-azul);
+    color: white;
+}   

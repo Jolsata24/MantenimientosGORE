@@ -1,0 +1,142 @@
+/* css/login.css */
+
+/* Variables con los colores oficiales del Logo GORE Pasco */
+:root {
+    --gore-azul: #00609C;   /* Azul del anillo */
+    --gore-dorado: #FDB913; /* Amarillo del mapa */
+    --texto-oscuro: #333333;
+}
+
+body {
+    /* Fondo con la imagen de Pasco oscurecida */
+    /* Asegúrate de que la ruta ../img/fondo_login.jpg sea correcta desde la carpeta css */
+    background: linear-gradient(rgba(0, 60, 120, 0.85), rgba(0, 40, 80, 0.9)), url('../img/fondo_login.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+}
+
+/* La tarjeta blanca flotante */
+.login-card {
+    background-color: white;
+    width: 100%;
+    max-width: 400px;
+    border-radius: 15px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5); /* Sombra fuerte para profundidad */
+    overflow: hidden;
+    animation: fadeInUp 0.8s ease-out; /* Animación de entrada */
+}
+
+/* Encabezado Azul */
+.login-header {
+    background-color: var(--gore-azul);
+    padding: 30px 20px;
+    text-align: center;
+    color: white;
+    border-bottom: 5px solid var(--gore-dorado); /* Línea dorada decorativa */
+}
+
+.logo-img {
+    width: 90px;
+    height: 90px;
+    background-color: white;
+    border-radius: 50%;
+    padding: 5px;
+    object-fit: contain;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    margin-bottom: 10px;
+}
+
+.titulo-sistema {
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.subtitulo {
+    font-size: 0.8rem;
+    opacity: 0.8;
+    margin: 0;
+}
+
+/* Cuerpo del formulario */
+.login-body {
+    padding: 40px 30px;
+}
+
+.input-group-text {
+    background-color: #f8f9fa;
+    border-right: none;
+    color: var(--gore-azul);
+}
+
+.form-control {
+    border-left: none;
+    background-color: #f8f9fa;
+    padding: 12px;
+}
+
+.form-control:focus {
+    box-shadow: none;
+    border-color: #ced4da;
+    background-color: white;
+}
+
+/* Etiquetas de los inputs */
+.form-label {
+    font-weight: 600;
+    color: var(--gore-azul);
+    font-size: 0.85rem;
+    margin-bottom: 5px;
+    display: block;
+}
+
+/* Botón Principal */
+.btn-login {
+    background-color: var(--gore-azul);
+    color: white;
+    border: none;
+    padding: 12px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 8px;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+.btn-login:hover {
+    background-color: var(--gore-dorado); /* Cambia a dorado al pasar el mouse */
+    color: var(--texto-oscuro);
+    transform: translateY(-2px); /* Efecto de elevación */
+}
+
+/* Pie de tarjeta */
+.login-footer {
+    text-align: center;
+    padding: 15px;
+    background-color: #f1f1f1;
+    font-size: 0.8rem;
+    color: #666;
+}
+
+/* Animación simple */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

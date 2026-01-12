@@ -1,0 +1,151 @@
+/* css/reportes.css */
+
+:root {
+    --gore-azul: #00609C;
+    --gore-dorado: #FDB913;
+    --gore-rojo: #D32F2F;
+    --texto-gris: #555;
+    --fondo-gris: #f4f6f9;
+}
+
+body {
+    background-color: var(--fondo-gris);
+}
+
+/* --- ENCABEZADO --- */
+.page-header {
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.titulo-seccion {
+    color: #343a40;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+/* --- BOTÓN IMPRIMIR --- */
+.btn-print {
+    background-color: #212529; /* Negro suave */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+.btn-print:hover {
+    background-color: #000;
+    transform: translateY(-2px);
+}
+
+/* --- TARJETAS DE GRÁFICOS --- */
+.card-grafico {
+    border: none;
+    border-radius: 12px;
+    background-color: white;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    height: 100%;
+    overflow: hidden;
+}
+
+.card-header-chart {
+    background-color: white;
+    padding: 15px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    font-weight: 700;
+    color: var(--gore-azul);
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    border-left: 4px solid var(--gore-dorado); /* Detalle decorativo */
+}
+
+.chart-container {
+    padding: 20px;
+    position: relative;
+    height: 300px; /* Altura fija para uniformidad */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- TABLA DE GASTOS (TOP 5) --- */
+.card-tabla-gastos {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    overflow: hidden;
+    margin-top: 30px;
+}
+
+.header-gastos {
+    background: linear-gradient(45deg, #b71c1c, #d32f2f); /* Rojo degradado */
+    color: white;
+    padding: 15px 20px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+}
+
+.table-gastos thead th {
+    background-color: #f8f9fa;
+    color: #333;
+    font-weight: 700;
+    border-bottom: 2px solid #ddd;
+}
+
+.monto-gasto {
+    color: var(--gore-rojo);
+    font-weight: 700;
+    font-family: 'Consolas', monospace; /* Fuente tipo ticket */
+    font-size: 1.1rem;
+}
+
+/* --- MEMBRETE SOLO PARA IMPRESIÓN --- */
+.membrete-impresion {
+    display: none; /* Oculto en pantalla normal */
+}
+
+/* --- REGLAS DE IMPRESIÓN (Ctrl+P) --- */
+@media print {
+    /* Ocultar elementos innecesarios */
+    .sidebar-container, .btn-print, .navbar-toggler, .page-header { 
+        display: none !important; 
+    }
+    
+    /* Ajustar el contenido al ancho completo del papel */
+    .main-content { 
+        margin-left: 0 !important; 
+        width: 100% !important; 
+        padding: 0 !important;
+    }
+
+    body {
+        background-color: white;
+        font-size: 12pt;
+    }
+
+    /* Mostrar membrete */
+    .membrete-impresion {
+        display: block !important;
+        text-align: center;
+        margin-bottom: 30px;
+        border-bottom: 2px solid black;
+        padding-bottom: 10px;
+    }
+
+    /* Quitar sombras para ahorrar tinta */
+    .card-grafico, .card-tabla-gastos {
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+    }
+}
