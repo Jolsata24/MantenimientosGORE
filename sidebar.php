@@ -51,7 +51,7 @@
             <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
                 <li><a class="dropdown-item" href="#">Configuración</a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item text-warning" href="login.php">Cerrar Sesión</a></li>
+                <a class="dropdown-item text-warning" href="logout.php">Cerrar Sesión</a>
             </ul>
         </div>
     </div>
