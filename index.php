@@ -56,6 +56,21 @@ while($row = $res_graf_cat->fetch_assoc()) {
     
     <link rel="stylesheet" href="css/estilos.css">
     <link rel="stylesheet" href="css/index.css">
+    <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#00609C">
+<link rel="apple-touch-icon" href="img/logo_gore.png">
+
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('sw.js').then(function(registration) {
+                console.log('ServiceWorker GORE registrado con éxito: ', registration.scope);
+            }, function(err) {
+                console.log('Fallo al registrar ServiceWorker: ', err);
+            });
+        });
+    }
+</script>
 </head>
 <body>
 

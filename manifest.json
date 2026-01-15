@@ -1,0 +1,21 @@
+{
+  "name": "Patrimonio GORE Pasco",
+  "short_name": "GORE Pasco",
+  "start_url": "./index.php",
+  "display": "standalone",
+  "background_color": "#f4f6f9",
+  "theme_color": "#00609C",
+  "description": "Sistema de Control Patrimonial - Gobierno Regional de Pasco",
+  "icons": [
+    {
+      "src": "img/logo_gore.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "img/logo_gore.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
