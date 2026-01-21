@@ -25,6 +25,7 @@ $res_areas_edit = $conn->query($sql_areas); // Para Modal Editar
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,16 +34,17 @@ $res_areas_edit = $conn->query($sql_areas); // Para Modal Editar
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
-    
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="css/personal.css">
 </head>
+
 <body>
 
     <?php include 'sidebar.php'; ?>
 
     <div class="main-content">
         <div class="container-fluid">
-            
+
             <div class="page-header">
                 <div>
                     <h2 class="titulo-seccion">
@@ -69,47 +71,47 @@ $res_areas_edit = $conn->query($sql_areas); // Para Modal Editar
                             </tr>
                         </thead>
                         <tbody>
-                            <?php while($fila = $resultado->fetch_assoc()): ?>
-                                <?php 
-                                    $iniciales = strtoupper(substr($fila['nombres'], 0, 1) . substr($fila['apellidos'], 0, 1));
+                            <?php while ($fila = $resultado->fetch_assoc()): ?>
+                                <?php
+                                $iniciales = strtoupper(substr($fila['nombres'], 0, 1) . substr($fila['apellidos'], 0, 1));
                                 ?>
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="avatar-iniciales"><?php echo $iniciales; ?></div>
-                                        <div>
-                                            <div class="fw-bold text-dark">
-                                                <?php echo $fila['apellidos']; ?>, <?php echo $fila['nombres']; ?>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-iniciales"><?php echo $iniciales; ?></div>
+                                            <div>
+                                                <div class="fw-bold text-dark">
+                                                    <?php echo $fila['apellidos']; ?>, <?php echo $fila['nombres']; ?>
+                                                </div>
+                                                <small class="text-muted">ID: <?php echo $fila['id_personal']; ?></small>
                                             </div>
-                                            <small class="text-muted">ID: <?php echo $fila['id_personal']; ?></small>
                                         </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="fw-bold text-primary"><i class="far fa-id-card me-1"></i> <?php echo $fila['dni']; ?></div>
-                                    <small class="text-muted"><i class="fas fa-phone-alt me-1"></i> <?php echo $fila['telefono']; ?></small>
-                                </td>
-                                <td><?php echo $fila['cargo']; ?></td>
-                                <td>
-                                    <span class="badge bg-light text-dark border">
-                                        <?php echo $fila['nombre_area']; ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <?php if($fila['estado'] == 'Activo'): ?>
-                                        <span class="badge-estado estado-activo">Activo</span>
-                                    <?php else: ?>
-                                        <span class="badge-estado estado-inactivo">Inactivo</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td class="text-center">
-                                    <a href="ver_personal.php?id=<?php echo $fila['id_personal']; ?>" class="btn-action btn-bienes" title="Ver Bienes Asignados">
-                                        <i class="fas fa-laptop-house"></i>
-                                    </a>
-                                    
-                                    <button class="btn-action btn-editar" title="Editar Datos"
-                                        data-bs-toggle="modal" data-bs-target="#modalEditarPersonal"
-                                        onclick="cargarEditarPersonal(
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-primary"><i class="far fa-id-card me-1"></i> <?php echo $fila['dni']; ?></div>
+                                        <small class="text-muted"><i class="fas fa-phone-alt me-1"></i> <?php echo $fila['telefono']; ?></small>
+                                    </td>
+                                    <td><?php echo $fila['cargo']; ?></td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border">
+                                            <?php echo $fila['nombre_area']; ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <?php if ($fila['estado'] == 'Activo'): ?>
+                                            <span class="badge-estado estado-activo">Activo</span>
+                                        <?php else: ?>
+                                            <span class="badge-estado estado-inactivo">Inactivo</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="ver_personal.php?id=<?php echo $fila['id_personal']; ?>" class="btn-action btn-bienes" title="Ver Bienes Asignados">
+                                            <i class="fas fa-laptop-house"></i>
+                                        </a>
+
+                                        <button class="btn-action btn-editar" title="Editar Datos"
+                                            data-bs-toggle="modal" data-bs-target="#modalEditarPersonal"
+                                            onclick="cargarEditarPersonal(
                                             '<?php echo $fila['id_personal']; ?>',
                                             '<?php echo $fila['dni']; ?>',
                                             '<?php echo $fila['nombres']; ?>',
@@ -119,10 +121,10 @@ $res_areas_edit = $conn->query($sql_areas); // Para Modal Editar
                                             '<?php echo $fila['telefono']; ?>',
                                             '<?php echo $fila['estado']; ?>'
                                         )">
-                                        <i class="fas fa-pen"></i>
-                                    </button>
-                                </td>
-                            </tr>
+                                            <i class="fas fa-pen"></i>
+                                        </button>
+                                    </td>
+                                </tr>
                             <?php endwhile; ?>
                         </tbody>
                     </table>
@@ -161,7 +163,7 @@ $res_areas_edit = $conn->query($sql_areas); // Para Modal Editar
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small text-muted">OFICINA</label>
                                 <select name="id_area" class="form-select" required>
-                                    <?php while($area = $res_areas->fetch_assoc()): ?>
+                                    <?php while ($area = $res_areas->fetch_assoc()): ?>
                                         <option value="<?php echo $area['id_area']; ?>"><?php echo $area['nombre_area']; ?></option>
                                     <?php endwhile; ?>
                                 </select>
@@ -189,7 +191,7 @@ $res_areas_edit = $conn->query($sql_areas); // Para Modal Editar
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <form action="procesos/actualizar_personal.php" method="POST"> <input type="hidden" name="id_personal" id="edit_id">
-                    
+
                     <div class="modal-body p-4">
                         <div class="row g-3">
                             <div class="col-md-4">
@@ -210,9 +212,15 @@ $res_areas_edit = $conn->query($sql_areas); // Para Modal Editar
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small text-muted">OFICINA</label>
-                                <select name="id_area" id="edit_area" class="form-select" required>
-                                    <?php while($area = $res_areas_edit->fetch_assoc()): ?>
-                                        <option value="<?php echo $area['id_area']; ?>"><?php echo $area['nombre_area']; ?></option>
+                                <select name="id_area" id="select_oficina" class="form-select" required style="width: 100%;">
+                                    <option value="">Buscar oficina...</option> <?php
+                                                                                // Reiniciamos el puntero por si se usó arriba
+                                                                                $res_areas->data_seek(0);
+                                                                                while ($area = $res_areas->fetch_assoc()):
+                                                                                ?>
+                                        <option value="<?php echo $area['id_area']; ?>">
+                                            <?php echo $area['nombre_area']; ?>
+                                        </option>
                                     <?php endwhile; ?>
                                 </select>
                             </div>
@@ -243,8 +251,14 @@ $res_areas_edit = $conn->query($sql_areas); // Para Modal Editar
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
     <script>
-        $(document).ready(function () {
-            $('#tablaPersonal').DataTable({ language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' }, lengthChange: false, pageLength: 8 });
+        $(document).ready(function() {
+            $('#tablaPersonal').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json'
+                },
+                lengthChange: false,
+                pageLength: 8
+            });
         });
 
         // Función para cargar datos en el Modal Editar
@@ -261,38 +275,40 @@ $res_areas_edit = $conn->query($sql_areas); // Para Modal Editar
     </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
-    // Detectar parámetros en la URL para mostrar alertas
-    const urlParams = new URLSearchParams(window.location.search);
-    const status = urlParams.get('status');
+    <script>
+        // Detectar parámetros en la URL para mostrar alertas
+        const urlParams = new URLSearchParams(window.location.search);
+        const status = urlParams.get('status');
 
-    if (status === 'success') {
-        Swal.fire({
-            icon: 'success',
-            title: '¡Operación Exitosa!',
-            text: 'Los datos se guardaron correctamente.',
-            confirmButtonColor: '#00609C'
-        });
-    } else if (status === 'updated') {
-        Swal.fire({
-            icon: 'info',
-            title: 'Actualizado',
-            text: 'La información ha sido modificada con éxito.',
-            confirmButtonColor: '#FDB913',
-            confirmButtonText: 'Genial'
-        });
-    } else if (status === 'error') {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Hubo un problema al procesar la solicitud.',
-        });
-    }
+        if (status === 'success') {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Operación Exitosa!',
+                text: 'Los datos se guardaron correctamente.',
+                confirmButtonColor: '#00609C'
+            });
+        } else if (status === 'updated') {
+            Swal.fire({
+                icon: 'info',
+                title: 'Actualizado',
+                text: 'La información ha sido modificada con éxito.',
+                confirmButtonColor: '#FDB913',
+                confirmButtonText: 'Genial'
+            });
+        } else if (status === 'error') {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Hubo un problema al procesar la solicitud.',
+            });
+        }
+
+        // Limpiar la URL para que no salga la alerta al recargar
+        if (status) {
+            window.history.replaceState(null, null, window.location.pathname);
+        }
+    </script>
     
-    // Limpiar la URL para que no salga la alerta al recargar
-    if (status) {
-        window.history.replaceState(null, null, window.location.pathname);
-    }
-</script>
 </body>
+
 </html>
