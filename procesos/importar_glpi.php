@@ -96,16 +96,17 @@ foreach ($conf_categorias as $tipo_glpi => $cfg) {
         
         // --- 1. DETERGENTE DE CÓDIGOS ---
         // Obtenemos el código original
+        // --- 1. DETERGENTE DE CÓDIGOS (MODIFICADO V11) ---
+        // Obtenemos el código original
         $codigo_raw = strtoupper(trim($fila['otherserial'] ?? $fila['name']));
         
-        // Verificamos si es un código válido o basura
-        $es_codigo_basura = (empty($codigo_raw) || in_array($codigo_raw, $blacklist_codigos) || strlen($codigo_raw) < 3);
+        
+        $codigo_final = "GLPI-" . $cfg['prefijo'] . "-" . $fila['id_glpi'];
 
-        // Si es basura, GENERAMOS UNO ÚNICO E IRREPETIBLE usando el ID de GLPI
-        if ($es_codigo_basura) {
-            $codigo_final = "GLPI-" . $cfg['prefijo'] . "-" . $fila['id_glpi'];
-        } else {
-            $codigo_final = $codigo_raw;
+        // (Opcional) Guardamos el código original en la descripción o serie para no perderlo
+        $codigo_original = strtoupper(trim($fila['otherserial'] ?? $fila['name']));
+        if (!empty($codigo_original) && $serie == '') {
+             $serie = $codigo_original; // Si no tiene serie, ponemos el código original ahí como referencia
         }
 
         // Datos complementarios
