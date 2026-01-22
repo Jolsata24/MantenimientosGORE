@@ -1,40 +1,42 @@
 <?php
 // procesos/validar_login.php
-
-// 1. Iniciar Sesión de PHP (Obligatorio al principio)
 session_start();
-
 include '../conexion.php';
 
-// 2. Recibir datos del formulario (Login.php)
-// Usamos trim() para borrar espacios accidentales al inicio o final
-$usuario = trim($_POST['usuario']); 
-$password_ingresado = $_POST['password'];
+// 1. Recibir datos del formulario
+$usuario_form = trim($_POST['usuario']);
+$password_form = $_POST['password'];
 
-// 3. Buscar al usuario en la base de datos
-// Usamos Prepared Statements para evitar Hackeos (SQL Injection)
-$sql = "SELECT id_usuario, nombre_usuario, password_hash, rol FROM usuarios_sistema WHERE nombre_usuario = ?";
+// 2. Buscar usuario en la BD (Usamos sentencias preparadas por seguridad)
+$sql = "SELECT * FROM usuarios_sistema WHERE nombre_usuario = ? AND estado = 'Activo'";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $usuario);
+$stmt->bind_param("s", $usuario_form);
 $stmt->execute();
 $resultado = $stmt->get_result();
 
-// 4. Verificar si el usuario existe
-if ($fila = $resultado->fetch_assoc()) {
-    
-    // 5. Verificar la contraseña (HASH)
-    // password_verify compara la clave escrita ('123') contra el hash encriptado ('$2y$10$...')
-    if (password_verify($password_ingresado, $fila['password_hash'])) {
+if ($row = $resultado->fetch_assoc()) {
+    // 3. Verificar Contraseña (password_verify compara el texto con el Hash)
+    // Nota: Asegúrate de que tu columna en BD se llame 'password_hash' como vimos antes
+    if (password_verify($password_form, $row['password_hash'])) {
         
-        // ¡LOGIN EXITOSO!
-        // Guardamos datos clave en la sesión para usarlos en todo el sistema
-        $_SESSION['id_usuario'] = $fila['id_usuario'];
-        $_SESSION['nombre'] = $fila['nombre_usuario'];
-        $_SESSION['rol'] = $fila['rol'];
-        $_SESSION['logeado'] = true;
+        // --- LOGIN CORRECTO ---
 
-        // Redirigir al Dashboard
-        header("Location: ../index.php");
+        // A. Guardar variables de sesión
+        $_SESSION['logeado'] = true;
+        $_SESSION['id_usuario'] = $row['id_usuario'];
+        $_SESSION['nombre_usuario'] = $row['nombre_usuario'];
+        $_SESSION['rol'] = $row['rol']; // Importante para que funcione la auditoría y el sidebar
+
+        // B. --- REGISTRO DE AUDITORÍA ---
+        if (file_exists('logger.php')) {
+            include 'logger.php';
+            // Registramos quién entró
+            registrar_auditoria($conn, 'LOGIN', "Inicio de sesión exitoso");
+        }
+        // --------------------------------
+
+        // C. Redirigir al Inventario
+        header("Location: ../inventario.php");
         exit();
 
     } else {
@@ -42,9 +44,8 @@ if ($fila = $resultado->fetch_assoc()) {
         header("Location: ../login.php?error=1");
         exit();
     }
-
 } else {
-    // Usuario no encontrado
+    // Usuario no existe o está inactivo
     header("Location: ../login.php?error=1");
     exit();
 }

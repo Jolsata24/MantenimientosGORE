@@ -1,174 +1,224 @@
 <?php
 // procesos/importar_glpi.php
-// V10.0 - SOLUCIÓN MAESTRA: ID ÚNICO DE GLPI
+// V31.0 - FINAL: Solución de Conflicto de IDs entre Categorías (S/N-PC-1, S/N-IMP-1)
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 include '../conexion.php';
 
 // --- CONFIGURACIÓN ---
 $conf_categorias = [
-    'Computer' => [
-        'id_cat'      => 1, 
-        'tabla_glpi'  => 'glpi_computers', 
-        'tabla_mod'   => 'glpi_computermodels',
-        'fk_model'    => 'computermodels_id', 
-        'icono'       => '💻',
-        'prefijo'     => 'PC'
-    ],
-    'Printer' => [
-        'id_cat'      => 2, 
-        'tabla_glpi'  => 'glpi_printers', 
-        'tabla_mod'   => 'glpi_printermodels',
-        'fk_model'    => 'printermodels_id', 
-        'icono'       => '🖨️',
-        'prefijo'     => 'IMP'
-    ],
-    'Monitor' => [
-        'id_cat'      => 3, 
-        'tabla_glpi'  => 'glpi_monitors', 
-        'tabla_mod'   => 'glpi_monitormodels',
-        'fk_model'    => 'monitormodels_id', 
-        'icono'       => '🖥️',
-        'prefijo'     => 'MON'
-    ]
+    'Computer' => ['id_cat' => 1, 'tabla_glpi' => 'glpi_computers', 'tabla_mod' => 'glpi_computermodels', 'fk_model' => 'computermodels_id', 'icono' => '💻', 'prefijo' => 'PC'],
+    'Printer' => ['id_cat' => 2, 'tabla_glpi' => 'glpi_printers', 'tabla_mod' => 'glpi_printermodels', 'fk_model' => 'printermodels_id', 'icono' => '🖨️', 'prefijo' => 'IMP'],
+    'Monitor' => ['id_cat' => 3, 'tabla_glpi' => 'glpi_monitors', 'tabla_mod' => 'glpi_monitormodels', 'fk_model' => 'monitormodels_id', 'icono' => '🖥️', 'prefijo' => 'MON']
 ];
 
-$nombre_db_glpi = "glpi_backup_restore"; 
+$db_glpi = "glpi_backup_restore"; 
 
-echo "<h1>🚀 Sincronización Maestra (IDs Estables) V10.0</h1>";
+echo "<h1>🚀 Importación GLPI V31.0 (Prefijos Únicos)</h1>";
 
-function tablaExiste($conn, $db, $tabla) {
-    $res = $conn->query("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = '$db' AND TABLE_NAME = '$tabla'");
+// --- FUNCIONES ---
+function checkTable($conn, $db, $table) {
+    $res = $conn->query("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = '$db' AND TABLE_NAME = '$table'");
     return ($res && $res->num_rows > 0);
 }
+function checkColumn($conn, $db, $table, $column) {
+    $res = $conn->query("SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '$db' AND TABLE_NAME = '$table' AND COLUMN_NAME = '$column'");
+    return ($res && $res->num_rows > 0);
+}
+function getGLPIData($conn, $sql) {
+    try {
+        $res = $conn->query($sql);
+        if ($res && $res->num_rows > 0) return $res->fetch_row()[0];
+    } catch (Exception $e) { return null; }
+    return null;
+}
+function formatearDisco($mb) {
+    if ($mb < 1000) return "-";
+    $gb_real = $mb / 1024;
+    if ($gb_real > 110 && $gb_real < 118) return "120 GB";
+    if ($gb_real >= 118 && $gb_real < 135) return "128 GB";
+    if ($gb_real > 220 && $gb_real < 230) return "240 GB";
+    if ($gb_real >= 230 && $gb_real < 245) return "250 GB";
+    if ($gb_real >= 245 && $gb_real < 265) return "256 GB";
+    if ($gb_real > 440 && $gb_real < 460) return "480 GB";
+    if ($gb_real >= 460 && $gb_real < 472) return "500 GB";
+    if ($gb_real >= 472 && $gb_real < 530) return "512 GB";
+    if ($gb_real > 900 && $gb_real < 1100) return "1 TB";
+    if ($gb_real > 1800 && $gb_real < 2100) return "2 TB";
+    return round($gb_real) . " GB";
+}
 
-// Verificar tablas auxiliares
-$t_cpu = tablaExiste($conn, $nombre_db_glpi, 'glpi_items_deviceprocessors');
-$t_ram = tablaExiste($conn, $nombre_db_glpi, 'glpi_items_devicememories');
-$t_disco = tablaExiste($conn, $nombre_db_glpi, 'glpi_items_diskdrives');
-$t_net = tablaExiste($conn, $nombre_db_glpi, 'glpi_networkports');
-$t_infocom = tablaExiste($conn, $nombre_db_glpi, 'glpi_infocoms');
+// Tablas auxiliares
+$t_os = checkTable($conn, $db_glpi, 'glpi_items_operatingsystems');
+$t_ip = checkTable($conn, $db_glpi, 'glpi_ipaddresses');
+$t_cpu_items = checkTable($conn, $db_glpi, 'glpi_items_deviceprocessors');
+$t_cpu_dev  = checkTable($conn, $db_glpi, 'glpi_deviceprocessors');
+$t_ram_items = checkTable($conn, $db_glpi, 'glpi_items_devicememories');
+$t_location = checkTable($conn, $db_glpi, 'glpi_locations');
 
-// Lista de códigos y series que sabemos que son "basura" o genéricos
-$blacklist_codigos = ['DEFAULT STRING', 'S/N', 'SN', '0', '00', '000', 'SIN CODIGO', 'NO TIENE', 'NA', 'N/A', 'NO ASSET TAG', 'To be filled by O.E.M.'];
-$blacklist_series = ['System Serial Number', 'To be filled by O.E.M.', 'Default String', '0', '123456789'];
+// Estrategia Disco
+$disk_strategy = 'NONE';
+$disk_col = 'capacity';
+if (checkTable($conn, $db_glpi, 'glpi_items_deviceharddrives')) {
+    if (checkColumn($conn, $db_glpi, 'glpi_items_deviceharddrives', 'capacity')) { $disk_strategy = 'LINK_CAPACITY'; $disk_col = 'capacity'; }
+    elseif (checkColumn($conn, $db_glpi, 'glpi_items_deviceharddrives', 'specif_capacity')) { $disk_strategy = 'LINK_CAPACITY'; $disk_col = 'specif_capacity'; }
+    else {
+        if (checkTable($conn, $db_glpi, 'glpi_deviceharddrives')) {
+            if (checkColumn($conn, $db_glpi, 'glpi_deviceharddrives', 'capacity')) { $disk_strategy = 'DEF_CAPACITY'; $disk_col = 'capacity'; }
+            elseif (checkColumn($conn, $db_glpi, 'glpi_deviceharddrives', 'totalsize')) { $disk_strategy = 'DEF_CAPACITY'; $disk_col = 'totalsize'; }
+        }
+    }
+}
 
-foreach ($conf_categorias as $tipo_glpi => $cfg) {
+foreach ($conf_categorias as $tipo => $cfg) {
     if (empty($cfg['id_cat'])) continue;
-    echo "<hr><h3>".$cfg['icono']." Procesando: $tipo_glpi...</h3>";
     
-    if (!tablaExiste($conn, $nombre_db_glpi, $cfg['tabla_glpi'])) {
-        echo "Tabla principal no encontrada. Saltando.";
-        continue;
-    }
-
-    // Consultas auxiliares
-    $sql_cpu = ($tipo_glpi == 'Computer' && $t_cpu) ? "(SELECT designation FROM $nombre_db_glpi.glpi_deviceprocessors dp JOIN $nombre_db_glpi.glpi_items_deviceprocessors idp ON dp.id = idp.deviceprocessors_id WHERE idp.items_id = c.id AND idp.itemtype = 'Computer' LIMIT 1)" : "'N/A'";
-    $sql_ram = ($tipo_glpi == 'Computer' && $t_ram) ? "(SELECT SUM(size) FROM $nombre_db_glpi.glpi_items_devicememories WHERE items_id = c.id AND itemtype = 'Computer')" : "0";
-    $sql_disco = ($tipo_glpi == 'Computer' && $t_disco) ? "(SELECT CONCAT(capacity, ' MB') FROM $nombre_db_glpi.glpi_items_diskdrives WHERE items_id = c.id AND itemtype = 'Computer' LIMIT 1)" : "'N/A'";
-    $sql_mac = $t_net ? "(SELECT mac FROM $nombre_db_glpi.glpi_networkports WHERE items_id = c.id AND itemtype = '$tipo_glpi' AND mac IS NOT NULL AND mac != '' LIMIT 1)" : "'N/A'";
-    $sql_compra = $t_infocom ? "(SELECT buy_date FROM $nombre_db_glpi.glpi_infocoms WHERE items_id = c.id AND itemtype = '$tipo_glpi' LIMIT 1)" : "NULL";
-    $sql_garantia = $t_infocom ? "(SELECT warranty_duration FROM $nombre_db_glpi.glpi_infocoms WHERE items_id = c.id AND itemtype = '$tipo_glpi' LIMIT 1)" : "'0'";
-    $sql_oficina = "(SELECT g.name FROM $nombre_db_glpi.glpi_groups g JOIN $nombre_db_glpi.glpi_groups_users gu ON g.id = gu.groups_id WHERE gu.users_id = c.users_id LIMIT 1)";
-
-    // Filtro especial para PC
-    $filtro_extra = ($tipo_glpi == 'Computer') ? "AND c.is_dynamic = 1" : "";
-
-    // AGREGAMOS c.id A LA CONSULTA PRINCIPAL
-    $sql = "SELECT c.id as id_glpi, c.name, c.otherserial, c.serial, c.date_mod, m.name as modelo, manu.name as marca, loc.completename as ubicacion_glpi, u.firstname, u.realname, 
-            $sql_cpu as cpu, $sql_ram as ram_mb, $sql_disco as disco_raw, $sql_mac as mac, $sql_oficina as nombre_oficina, $sql_compra as fecha_compra, $sql_garantia as garantia_meses
-            FROM $nombre_db_glpi.".$cfg['tabla_glpi']." c
-            LEFT JOIN $nombre_db_glpi.".$cfg['tabla_mod']." m ON c.".$cfg['fk_model']." = m.id
-            LEFT JOIN $nombre_db_glpi.glpi_manufacturers manu ON c.manufacturers_id = manu.id
-            LEFT JOIN $nombre_db_glpi.glpi_locations loc ON c.locations_id = loc.id
-            LEFT JOIN $nombre_db_glpi.glpi_users u ON c.users_id = u.id
-            WHERE c.is_deleted = 0 AND c.is_template = 0 $filtro_extra";
-
-    $res = $conn->query($sql);
+    echo "<div class='card mb-3 p-3 border'>";
+    echo "<h3 class='text-primary'>".$cfg['icono']." Procesando: $tipo</h3>";
     
-    if(!$res) { echo "<p style='color:red'>Error SQL: " . $conn->error . "</p>"; continue; }
+    if (!checkTable($conn, $db_glpi, $cfg['tabla_glpi'])) { echo "<span style='color:red'>Tabla NO encontrada.</span></div>"; continue; }
 
-    $cont_new = 0; $cont_upd = 0;
+    $col_inv = "'' as otherserial";
+    if(checkColumn($conn, $db_glpi, $cfg['tabla_glpi'], 'otherserial')) $col_inv = "otherserial";
+    $col_alt = "'' as contact_num";
+    if(checkColumn($conn, $db_glpi, $cfg['tabla_glpi'], 'contact_num')) $col_alt = "contact_num";
+    $col_model = $cfg['fk_model'];
 
-    echo "<ul style='font-size:0.8rem; max-height:300px; overflow-y:scroll;'>";
+    $sql_base = "SELECT id, name, serial, $col_inv, $col_alt, date_mod, manufacturers_id, locations_id, users_id, $col_model as model_id 
+                 FROM $db_glpi.".$cfg['tabla_glpi']." 
+                 WHERE is_deleted = 0"; 
+
+    $res_main = $conn->query($sql_base);
+    if (!$res_main) { echo "<p style='color:red'>Error SQL</p></div>"; continue; }
+
+    $cnt_upd = 0; $cnt_new = 0;
     
-    while($fila = $res->fetch_assoc()) {
-        
-        // --- 1. DETERGENTE DE CÓDIGOS ---
-        // Obtenemos el código original
-        // --- 1. DETERGENTE DE CÓDIGOS (MODIFICADO V11) ---
-        // Obtenemos el código original
-        $codigo_raw = strtoupper(trim($fila['otherserial'] ?? $fila['name']));
-        
-        
-        $codigo_final = "GLPI-" . $cfg['prefijo'] . "-" . $fila['id_glpi'];
+    echo "<div style='max-height:300px; overflow-y:auto; background:#f8f9fa; padding:10px; border:1px solid #ddd; font-family:monospace; font-size:0.85rem;'>";
 
-        // (Opcional) Guardamos el código original en la descripción o serie para no perderlo
-        $codigo_original = strtoupper(trim($fila['otherserial'] ?? $fila['name']));
-        if (!empty($codigo_original) && $serie == '') {
-             $serie = $codigo_original; // Si no tiene serie, ponemos el código original ahí como referencia
+    while ($item = $res_main->fetch_assoc()) {
+        $id_glpi = $item['id'];
+        $id_cat = $cfg['id_cat'];
+        $prefijo = $cfg['prefijo'];
+        
+        // 1. GENERACIÓN INTELIGENTE DE CÓDIGO (Solución del error)
+        $codigo_base = "";
+        if (!empty($item['otherserial'])) $codigo_base = trim($item['otherserial']);
+        elseif (!empty($item['contact_num'])) $codigo_base = trim($item['contact_num']);
+        
+        if (empty($codigo_base)) {
+            // Si no tiene código, usamos formato: S/N-PREFIJO-ID
+            // Ejemplo: S/N-PC-1, S/N-IMP-1
+            $codigo_base = "S/N-" . $prefijo . "-" . $id_glpi;
+        }
+        $codigo_final = $codigo_base;
+
+        // Ubicación
+        $ubicacion_final = '-';
+        if ($item['locations_id'] > 0 && $t_location) {
+            $sql_loc = "SELECT completename FROM $db_glpi.glpi_locations WHERE id = " . $item['locations_id'];
+            if(!checkColumn($conn, $db_glpi, 'glpi_locations', 'completename')) $sql_loc = "SELECT name FROM $db_glpi.glpi_locations WHERE id = " . $item['locations_id'];
+            $val = getGLPIData($conn, $sql_loc);
+            if ($val) $ubicacion_final = $val;
         }
 
-        // Datos complementarios
-        $serie = strtoupper(trim($fila['serial'] ?? ''));
-        $marca = strtoupper(trim($fila['marca'] ?? 'GENERICO'));
-        $modelo = strtoupper(trim($fila['modelo'] ?? ''));
-        $mac = trim($fila['mac'] ?? '-');
-        $fec = $fila['date_mod'];
-        $fecha_compra = !empty($fila['fecha_compra']) ? "'".$fila['fecha_compra']."'" : "NULL";
-        $garantia = (intval($fila['garantia_meses']) > 0) ? intval($fila['garantia_meses'])." Meses" : "Sin Garantía";
-        
-        $ubicacion = "SIN UBICACION";
-        if (!empty($fila['ubicacion_glpi'])) { $parts = explode(' > ', $fila['ubicacion_glpi']); $ubicacion = strtoupper(trim(end($parts))); }
-        
-        $oficina_real = strtoupper(trim($fila['nombre_oficina'] ?? 'SIN ASIGNAR'));
-        $nom = strtoupper(trim($fila['firstname'] ?? '')); $ape = strtoupper(trim($fila['realname'] ?? ''));
-        
-        // Gestión Personal (Simplificado)
-        $id_personal = "NULL";
-        if (!empty($nom) && !empty($ape)) {
-            $q_per = $conn->query("SELECT id_personal FROM personal WHERE apellidos = '$ape' AND nombres = '$nom' LIMIT 1");
-            if ($q_per && $q_per->num_rows > 0) { $id_personal = $q_per->fetch_assoc()['id_personal']; }
-            else { 
-                $conn->query("INSERT INTO personal (dni, nombres, apellidos, cargo, oficina, estado) VALUES (NULL, '$nom', '$ape', 'USUARIO GLPI', '$oficina_real', 'Activo')");
-                $id_personal = $conn->insert_id; 
+        // IP
+        $ip_final = '-';
+        if ($t_ip) {
+            $val = getGLPIData($conn, "SELECT ip.name FROM $db_glpi.glpi_ipaddresses ip JOIN $db_glpi.glpi_networkports np ON ip.mainitems_id = np.id WHERE np.items_id = $id_glpi AND np.itemtype = '$tipo' AND ip.name NOT LIKE '%:%' LIMIT 1");
+            if ($val) $ip_final = $val;
+        }
+
+        // SO
+        $os_final = '-';
+        if ($tipo == 'Computer' && $t_os) {
+            $val = getGLPIData($conn, "SELECT os.name FROM $db_glpi.glpi_operatingsystems os JOIN $db_glpi.glpi_items_operatingsystems ios ON os.id = ios.operatingsystems_id WHERE ios.items_id = $id_glpi AND ios.itemtype = 'Computer' LIMIT 1");
+            if ($val) $os_final = $val;
+        }
+
+        // Hardware (PC)
+        $disco_final = '-';
+        $procesador_final = '-';
+        $ram_final = '-';
+        if ($tipo == 'Computer') {
+            $disk_mb = 0;
+            if ($disk_strategy == 'LINK_CAPACITY') $disk_mb = getGLPIData($conn, "SELECT SUM($disk_col) FROM $db_glpi.glpi_items_deviceharddrives WHERE items_id = $id_glpi AND itemtype = 'Computer'");
+            elseif ($disk_strategy == 'DEF_CAPACITY') $disk_mb = getGLPIData($conn, "SELECT SUM(d.$disk_col) FROM $db_glpi.glpi_items_deviceharddrives l INNER JOIN $db_glpi.glpi_deviceharddrives d ON l.deviceharddrives_id = d.id WHERE l.items_id = $id_glpi AND l.itemtype = 'Computer'");
+            if ($disk_mb > 0) $disco_final = formatearDisco($disk_mb);
+
+            if ($t_cpu_items && $t_cpu_dev) {
+                $val = getGLPIData($conn, "SELECT d.designation FROM $db_glpi.glpi_items_deviceprocessors i INNER JOIN $db_glpi.glpi_deviceprocessors d ON i.deviceprocessors_id = d.id WHERE i.items_id = $id_glpi AND i.itemtype = 'Computer' LIMIT 1");
+                if ($val) $procesador_final = $val;
+            }
+            if ($t_ram_items) {
+                $ram_mb = getGLPIData($conn, "SELECT SUM(size) FROM $db_glpi.glpi_items_devicememories WHERE items_id = $id_glpi AND itemtype = 'Computer'");
+                if ($ram_mb > 0) $ram_final = ($ram_mb >= 1024) ? round($ram_mb / 1024) . " GB" : $ram_mb . " MB";
             }
         }
 
-        // Hardware
-        $cpu = '-'; $ram = '-'; $disco = '-';
-        if($tipo_glpi == 'Computer') {
-            $cpu = trim($fila['cpu'] ?? 'GENERICO');
-            $r_mb = intval($fila['ram_mb']); $ram = ($r_mb > 0) ? round($r_mb/1024)." GB" : "-";
-            $d_val = intval($fila['disco_raw']); $disco = ($d_val > 1000) ? round($d_val/1024)." GB" : "-";
+        // Otros
+        $marca = ($item['manufacturers_id']) ? (getGLPIData($conn, "SELECT name FROM $db_glpi.glpi_manufacturers WHERE id = " . $item['manufacturers_id']) ?? 'GENERICO') : 'GENERICO';
+        $modelo = '-';
+        if ($item['model_id'] && checkTable($conn, $db_glpi, $cfg['tabla_mod'])) {
+            $modelo = getGLPIData($conn, "SELECT name FROM $db_glpi.".$cfg['tabla_mod']." WHERE id = " . $item['model_id']) ?? '-';
         }
-        $desc = ($tipo_glpi=='Computer'?'COMPUTADORA':($tipo_glpi=='Printer'?'IMPRESORA':'MONITOR')) . " " . $fila['name'];
+        $estado_final = 'Regular';
+        if (checkColumn($conn, $db_glpi, $cfg['tabla_glpi'], 'states_id')) {
+            $st = strtoupper(getGLPIData($conn, "SELECT s.name FROM $db_glpi.".$cfg['tabla_glpi']." c LEFT JOIN $db_glpi.glpi_states s ON c.states_id = s.id WHERE c.id = $id_glpi") ?? '');
+            if (strpos($st, 'BUEN')!==false || strpos($st, 'OPERATIV')!==false) $estado_final='Bueno';
+            elseif (strpos($st, 'MAL')!==false || strpos($st, 'BAJA')!==false) $estado_final='Malo';
+        }
 
-        // --- 2. OPERACIÓN SIMPLE (INSERT O UPDATE) ---
-        // Ahora confiamos ciegamente en $codigo_final porque si era genérico, lo hicimos único.
-        $id_cat_destino = $cfg['id_cat'];
+        // Escapar datos
+        $desc = $conn->real_escape_string("$tipo GLPI " . $item['name']);
+        $marca = $conn->real_escape_string($marca);
+        $modelo = $conn->real_escape_string($modelo);
+        $os_final = $conn->real_escape_string($os_final);
+        $ip_final = $conn->real_escape_string($ip_final);
+        $procesador_final = $conn->real_escape_string($procesador_final);
+        $ram_final = $conn->real_escape_string($ram_final);
+        $ubicacion_final = $conn->real_escape_string($ubicacion_final);
+        $codigo_check = $conn->real_escape_string($codigo_final);
+
+        // --- SINCRONIZACIÓN ---
         
-        $check = $conn->query("SELECT id_bien FROM bienes WHERE codigo_patrimonial = '$codigo_final'");
-
-        if ($check->num_rows == 0) {
-            // INSERTAR NUEVO
-            $sql_ins = "INSERT INTO bienes (codigo_patrimonial, id_categoria, id_personal, descripcion, marca, modelo, serie, ubicacion, procesador, ram, disco, mac, ultimo_inventario, fecha_compra, garantia, estado_fisico, fecha_registro) 
-                        VALUES ('$codigo_final', $id_cat_destino, $id_personal, '$desc', '$marca', '$modelo', '$serie', '$ubicacion', '$cpu', '$ram', '$disco', '$mac', '$fec', $fecha_compra, '$garantia', 'Bueno', NOW())";
-            if($conn->query($sql_ins)) { 
-                echo "<li style='color:green'>➕ Nuevo: $codigo_final</li>"; 
-                $cont_new++; 
-            }
+        $qry_id = $conn->query("SELECT id_bien FROM bienes WHERE id_glpi = $id_glpi AND id_categoria = $id_cat");
+        
+        if ($qry_id->num_rows > 0) {
+            // ACTUALIZAR
+            $id = $qry_id->fetch_assoc()['id_bien'];
+            $sql_upd = "UPDATE bienes SET 
+                        codigo_patrimonial = '$codigo_final',
+                        ip='$ip_final', so='$os_final', disco='$disco_final', 
+                        procesador='$procesador_final', ram='$ram_final', ubicacion='$ubicacion_final', 
+                        marca='$marca', modelo='$modelo', estado_fisico='$estado_final' 
+                        WHERE id_bien=$id";
+            if ($conn->query($sql_upd)) $cnt_upd++;
         } else {
-            // ACTUALIZAR EXISTENTE
-            $id_existente = $check->fetch_assoc()['id_bien'];
-            $set_per = ($id_personal != "NULL") ? ", id_personal = $id_personal" : "";
-            $sql_upd = "UPDATE bienes SET id_categoria=$id_cat_destino, ubicacion='$ubicacion', procesador='$cpu', ram='$ram', disco='$disco', mac='$mac', ultimo_inventario='$fec', fecha_compra=$fecha_compra, garantia='$garantia' $set_per WHERE id_bien=$id_existente";
-            if($conn->query($sql_upd)) { 
-                echo "<li style='color:blue'>🔄 Act: $codigo_final</li>"; 
-                $cont_upd++; 
+            // INSERTAR
+            
+            // Verificamos conflicto de Código (por si GLPI tiene duplicados reales)
+            $qry_code = $conn->query("SELECT id_bien FROM bienes WHERE codigo_patrimonial = '$codigo_check'");
+            if ($qry_code->num_rows > 0) {
+                // Conflicto Real: Agregamos sufijo con PREFIJO para evitar choques entre categorías
+                $codigo_final = $codigo_base . "-DUP-" . $prefijo . "-" . $id_glpi;
+            }
+
+            $sql_ins = "INSERT INTO bienes (
+                id_glpi, codigo_patrimonial, id_categoria, descripcion, marca, modelo, serie, 
+                ip, so, disco, procesador, ram, ubicacion, estado_fisico, fecha_registro
+            ) VALUES (
+                $id_glpi, '$codigo_final', $id_cat, '$desc', '$marca', '$modelo', '$item[serial]', 
+                '$ip_final', '$os_final', '$disco_final', '$procesador_final', '$ram_final', 
+                '$ubicacion_final', '$estado_final', NOW()
+            )";
+            
+            if ($conn->query($sql_ins)) {
+                $color = (strpos($codigo_final, 'DUP') !== false) ? 'purple' : 'green';
+                echo "<span style='color:$color'>[NUEVO] $codigo_final</span><br>";
+                $cnt_new++;
             }
         }
     }
-    echo "</ul><p><b>Resumen $tipo_glpi:</b> Nuevos: $cont_new | Actualizados: $cont_upd</p>";
+    echo "</div><p>Resumen $tipo: Nuevos: $cnt_new | Actualizados: $cnt_upd</p></div>";
 }
 ?>

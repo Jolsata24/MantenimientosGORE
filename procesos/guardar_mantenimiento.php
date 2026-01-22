@@ -11,26 +11,35 @@ if (!isset($_SESSION['logeado']) || $_SESSION['logeado'] !== true) {
 
 // 1. Recibir datos del formulario
 $id_bien = $_POST['id_bien'];
-$tipo_evento = $_POST['tipo_evento'];
-$fecha = $_POST['fecha'];
-$detalle = ucfirst(trim($_POST['detalle'])); // Primera letra mayúscula
-$tecnico = strtoupper(trim($_POST['tecnico'])); // Nombre en mayúsculas
-$costo = !empty($_POST['costo']) ? $_POST['costo'] : 0.00; // Si está vacío, es 0
+$tipo = $_POST['tipo']; 
+$fecha = $_POST['fecha']; 
+$descripcion = ucfirst(trim($_POST['descripcion'])); 
+$tecnico = trim($_POST['tecnico']); 
+$costo = !empty($_POST['costo']) ? $_POST['costo'] : 0.00;
 
 // 2. Insertar en la tabla mantenimientos
-$sql = "INSERT INTO mantenimientos (id_bien, tipo_evento, fecha_realizacion, detalle_tecnico, tecnico_responsable, costo) 
-        VALUES (?, ?, ?, ?, ?, ?)";
+$sql = "INSERT INTO mantenimientos (id_bien, tipo_mantenimiento, fecha_mantenimiento, descripcion, tecnico_responsable, costo, fecha_registro) 
+        VALUES (?, ?, ?, ?, ?, ?, NOW())";
 
 $stmt = $conn->prepare($sql);
+$stmt->bind_param("issssd", $id_bien, $tipo, $fecha, $descripcion, $tecnico, $costo);
 
-// i = integer, s = string, s = string, s = string, s = string, d = double (decimal)
-$stmt->bind_param("issssd", $id_bien, $tipo_evento, $fecha, $detalle, $tecnico, $costo);
-
+// --- CORRECCIÓN: UN SOLO BLOQUE DE EJECUCIÓN ---
 if ($stmt->execute()) {
-    // Redirigir de vuelta a la ficha del activo
-    header("Location: ../ver_activo.php?id=" . $id_bien . "&status=success");
+    
+    // A. Auditoría (Se registra ANTES de irse)
+    // Verificamos si existe para evitar errores fatales si borraras el archivo
+    if (file_exists('logger.php')) {
+        include 'logger.php';
+        $detalles = "Registró mantenimiento ($tipo) al activo ID: $id_bien. Técnico: $tecnico";
+        registrar_auditoria($conn, 'MANTENIMIENTO', $detalles);
+    }
+    
+    // B. Redirigir (Esto detiene el script, por eso la auditoría va antes)
+    header("Location: ../ver_activo.php?id=" . $id_bien . "&status=saved");
+    exit(); 
 } else {
-    echo "Error al guardar el reporte: " . $conn->error;
+    echo "Error al guardar el reporte: " . $stmt->error;
 }
 
 $stmt->close();
