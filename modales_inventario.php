@@ -2,18 +2,30 @@
 // 1. Cargar Personal para los Selects
 $opt_personal = '<option value="">-- Sin Asignar (Libre) --</option>';
 $q_p = $conn->query("SELECT * FROM personal WHERE estado = 'Activo' ORDER BY apellidos ASC");
-if($q_p){
-    while($p = $q_p->fetch_assoc()){
-        $opt_personal .= '<option value="'.$p['id_personal'].'">'.$p['apellidos'].' '.$p['nombres'].' ('.$p['oficina'].')</option>';
+if ($q_p) {
+    while ($p = $q_p->fetch_assoc()) {
+        $opt_personal .= '<option value="' . $p['id_personal'] . '">' . $p['apellidos'] . ' ' . $p['nombres'] . ' (' . $p['oficina'] . ')</option>';
     }
 }
 
 // 2. Cargar Categorías DINÁMICAS (Para que aparezcan Proyectores, Tablets, etc.)
 $opt_categorias = '';
 $q_c = $conn->query("SELECT * FROM categorias WHERE estado = 'Activo' ORDER BY nombre ASC");
-if($q_c){
-    while($c = $q_c->fetch_assoc()){
-        $opt_categorias .= '<option value="'.$c['id_categoria'].'">'.$c['nombre'].'</option>';
+if ($q_c) {
+    while ($c = $q_c->fetch_assoc()) {
+        $opt_categorias .= '<option value="' . $c['id_categoria'] . '">' . $c['nombre'] . '</option>';
+    }
+}
+// ... después del bloque de categorías ...
+
+// 3. Cargar Ubicaciones desde la tabla AREAS
+$opt_ubicacion = '<option value="">-- Seleccionar Ubicación --</option>';
+$q_a = $conn->query("SELECT * FROM areas ORDER BY nombre_area ASC"); // <--- Verifica si la columna se llama 'nombre'
+
+if ($q_a) {
+    while ($a = $q_a->fetch_assoc()) {
+        // Usamos el nombre del área como valor para que se guarde el texto en la tabla bienes
+        $opt_ubicacion .= '<option value="' . $a['nombre_area'] . '">' . $a['nombre_area'] . '</option>';
     }
 }
 ?>
@@ -30,7 +42,7 @@ if($q_c){
                     <div class="alert alert-info small mb-3">
                         <i class="fas fa-info-circle me-1"></i> Esto creará una nueva tarjeta en el inventario.
                     </div>
-                    
+
                     <div class="mb-3">
                         <label class="form-label fw-bold">Nombre de la Categoría</label>
                         <input type="text" name="nombre" class="form-control" placeholder="Ej: Proyectores, Vehículos, Muebles..." required>
@@ -73,7 +85,7 @@ if($q_c){
             </div>
             <form action="procesos/guardar_bien.php" method="POST">
                 <div class="modal-body">
-                    
+
                     <div class="row g-3 mb-3">
                         <div class="col-md-4">
                             <label class="form-label fw-bold">Categoría</label>
@@ -117,9 +129,11 @@ if($q_c){
                             <input type="text" name="serie" class="form-control">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Ubicación Física</label>
-                            <input type="text" name="ubicacion" class="form-control">
-                        </div>
+    <label class="form-label">Ubicación Física</label>
+    <select name="ubicacion" class="form-select">
+        <?php echo $opt_ubicacion; ?>
+    </select>
+</div>
                         <div class="col-md-4">
                             <label class="form-label">Custodio</label>
                             <select name="id_personal" class="form-select">
@@ -226,7 +240,9 @@ if($q_c){
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Ubicación Física</label>
-                            <input type="text" name="ubicacion" id="edit_ubicacion" class="form-control">
+                            <select name="ubicacion" id="edit_ubicacion" class="form-select">
+                                <?php echo $opt_ubicacion; ?>
+                            </select>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Custodio</label>
@@ -236,15 +252,15 @@ if($q_c){
                         </div>
                     </div>
                     <div class="col-md-6 mb-3">
-    <label class="form-label">Color / Tipo de Impresión</label>
-    <select class="form-select" name="color" id="edit_color">
-        <option value="">Seleccione...</option>
-        <option value="Monocromático (B/N)">Monocromático (B/N)</option>
-        <option value="Color">Color</option>
-        <option value="Matricial">Matricial</option>
-        <option value="Plotter">Plotter</option>
-    </select>
-</div>
+                        <label class="form-label">Color / Tipo de Impresión</label>
+                        <select class="form-select" name="color" id="edit_color">
+                            <option value="">Seleccione...</option>
+                            <option value="Monocromático (B/N)">Monocromático (B/N)</option>
+                            <option value="Color">Color</option>
+                            <option value="Matricial">Matricial</option>
+                            <option value="Plotter">Plotter</option>
+                        </select>
+                    </div>
                     <hr>
                     <h6 class="text-muted mb-3">Especificaciones</h6>
 
@@ -262,7 +278,7 @@ if($q_c){
                             <input type="text" name="disco" id="edit_disco" class="form-control form-control-sm">
                         </div>
                     </div>
-                    
+
                     <div class="row g-3">
                         <div class="col-md-4">
                             <label class="form-label small">Dirección IP</label>
@@ -272,7 +288,7 @@ if($q_c){
                             <label class="form-label small">Dirección MAC</label>
                             <input type="text" name="mac" id="edit_mac" class="form-control form-control-sm">
                         </div>
-                         <div class="col-md-4">
+                        <div class="col-md-4">
                             <label class="form-label small">Sistema Operativo</label>
                             <input type="text" name="so" id="edit_so" class="form-control form-control-sm">
                         </div>
@@ -304,10 +320,10 @@ if($q_c){
         let estado = json.estado_fisico.charAt(0).toUpperCase() + json.estado_fisico.slice(1).toLowerCase();
         let selectEstado = document.getElementById('edit_estado');
         let options = Array.from(selectEstado.options).map(opt => opt.value);
-        if(options.includes(estado)) selectEstado.value = estado;
-        else if(estado.includes("Baja")) selectEstado.value = "Baja";
-        else if(estado.includes("Bueno")) selectEstado.value = "Bueno";
-        else if(estado.includes("Malo")) selectEstado.value = "Malo";
+        if (options.includes(estado)) selectEstado.value = estado;
+        else if (estado.includes("Baja")) selectEstado.value = "Baja";
+        else if (estado.includes("Bueno")) selectEstado.value = "Bueno";
+        else if (estado.includes("Malo")) selectEstado.value = "Malo";
         else selectEstado.value = "Regular";
 
         // Specs
