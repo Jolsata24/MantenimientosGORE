@@ -55,7 +55,8 @@ $page = 'inventario';
                         <thead class="bg-light text-secondary">
                             <tr>
                                 <th><i class="fas fa-barcode"></i> Código / Serie</th>
-                                <th><i class="fas fa-tv"></i> Equipo / Nombre</th>
+                                <th><i class="fas fa-network-wired"></i> Hostname</th>
+<th><i class="fas fa-laptop"></i> Equipo / Nombre</th>
                                 <th><i class="fas fa-microchip"></i> Hardware</th>
                                 <th><i class="fas fa-map-marker-alt"></i> Ubicación</th>
                                 <th><i class="fas fa-user"></i> Custodio</th>
@@ -89,14 +90,22 @@ $page = 'inventario';
                                 </td>
 
                                 <td>
-                                    <div class="fw-bold text-primary text-truncate" style="max-width: 180px;" title="<?php echo $fila['descripcion']; ?>">
-                                        <?php echo str_replace('Computer GLPI ', '', $fila['descripcion']); // Limpiamos el nombre un poco ?>
-                                    </div>
+                                    <div class="fw-bold text-primary text-truncate" style="max-width: 150px;" title="<?php echo $fila['descripcion']; ?>">
+        <?php echo str_replace('Computer GLPI ', '', $fila['descripcion']); ?>
+    </div>
                                     <span class="d-block small text-dark mt-1">
                                         <?php echo $fila['marca']; ?> - <?php echo $fila['modelo']; ?>
                                     </span>
                                 </td>
-
+                                <td>
+    <?php if (!empty($fila['tipo_equipo']) && $fila['tipo_equipo'] != '-'): ?>
+        <span class="badge bg-info text-dark border">
+            <i class="fas fa-desktop me-1"></i> <?php echo $fila['tipo_equipo']; ?>
+        </span>
+    <?php else: ?>
+        <span class="text-muted small">-</span>
+    <?php endif; ?>
+</td>
                                 <td>
                                     <div class="d-flex flex-column gap-1">
                                         <span class="badge bg-light text-dark border text-start fw-normal" title="Procesador">
