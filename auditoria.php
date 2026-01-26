@@ -4,22 +4,25 @@ include 'conexion.php';
 session_start();
 
 // 1. SEGURIDAD: Solo rol 'sistemas' puede entrar
-// Asegúrate de que al hacer LOGIN guardes $_SESSION['rol']
 if (!isset($_SESSION['logeado']) || $_SESSION['logeado'] !== true) {
     header("Location: login.php"); exit;
 }
 if (!isset($_SESSION['rol']) || strtolower($_SESSION['rol']) != 'sistemas') {
-    // Si no es sistemas, lo botamos al inicio
     header("Location: inventario.php"); exit;
 }
 
 $page = 'auditoria';
+
+// Obtener versión de MySQL para mostrar en info
+$sql_ver = "SELECT VERSION() as ver";
+$res_ver = $conn->query($sql_ver);
+$mysql_version = $res_ver->fetch_assoc()['ver'];
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Auditoría | GORE Pasco</title>
+    <title>Auditoría y Sistema | GORE Pasco</title>
     <link rel="icon" type="image/png" href="img/logo_gore.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -35,10 +38,65 @@ $page = 'auditoria';
             
             <div class="page-header mb-4">
                 <h2 class="titulo-seccion">
-                    <i class="fas fa-shield-alt text-danger me-2"></i> Auditoría del Sistema
+                    <i class="fas fa-server text-danger me-2"></i> Panel de Sistemas
                 </h2>
-                <small class="text-muted">Registro de seguridad y trazabilidad de acciones.</small>
+                <small class="text-muted">Gestión técnica, copias de seguridad y logs de auditoría.</small>
             </div>
+
+            <div class="row mb-4">
+                <div class="col-md-7">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white fw-bold">
+                            <i class="fas fa-microchip me-2 text-primary"></i> Información del Servidor
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <div class="p-3 bg-light rounded border text-center">
+                                        <small class="d-block text-muted text-uppercase mb-1" style="font-size:0.7rem;">Versión PHP</small>
+                                        <span class="fw-bold text-dark"><?php echo phpversion(); ?></span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-3 bg-light rounded border text-center">
+                                        <small class="d-block text-muted text-uppercase mb-1" style="font-size:0.7rem;">Versión MySQL</small>
+                                        <span class="fw-bold text-dark"><?php echo $mysql_version; ?></span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-3 bg-light rounded border text-center">
+                                        <small class="d-block text-muted text-uppercase mb-1" style="font-size:0.7rem;">Base de Datos</small>
+                                        <span class="fw-bold text-primary"><?php echo $base_datos; ?></span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-3 bg-light rounded border text-center">
+                                        <small class="d-block text-muted text-uppercase mb-1" style="font-size:0.7rem;">IP Servidor</small>
+                                        <span class="fw-bold text-dark"><?php echo $_SERVER['SERVER_ADDR'] ?? 'Localhost'; ?></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-5">
+                    <div class="card border-0 shadow-sm h-100 bg-primary text-white" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
+                        <div class="card-body d-flex flex-column justify-content-center align-items-center text-center p-4">
+                            <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center mb-3" style="width:60px; height:60px; font-size:1.5rem;">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <h5 class="card-title fw-bold">Copia de Seguridad</h5>
+                            <p class="small text-white-50 mb-4">Genera un archivo SQL completo de la base de datos actual para resguardar la información.</p>
+                            <a href="procesos/backup.php" class="btn btn-light text-primary fw-bold w-100 rounded-pill">
+                                <i class="fas fa-download me-2"></i> Descargar Backup (.sql)
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h5 class="mb-3 text-muted"><i class="fas fa-history me-2"></i>Registro de Actividades (Logs)</h5>
 
             <div class="card card-tabla border-0 shadow-sm">
                 <div class="card-body">
@@ -64,6 +122,7 @@ $page = 'auditoria';
                                     if($row['accion'] == 'CREAR') $badge = "bg-success";
                                     if($row['accion'] == 'EDITAR') $badge = "bg-warning text-dark";
                                     if($row['accion'] == 'ELIMINAR') $badge = "bg-danger";
+                                    if($row['accion'] == 'LOGIN') $badge = "bg-primary";
                                     if($row['accion'] == 'MANTENIMIENTO') $badge = "bg-info text-dark";
                                 ?>
                                 <tr>
@@ -104,7 +163,7 @@ $page = 'auditoria';
         $(document).ready(function() {
             $('#tablaAuditoria').DataTable({
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' },
-                order: [[ 0, "desc" ]] // Ordenar por ID descendente (lo más nuevo primero)
+                order: [[ 0, "desc" ]] 
             });
         });
     </script>
