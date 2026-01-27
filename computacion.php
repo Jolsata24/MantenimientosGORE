@@ -56,6 +56,10 @@ $page = 'inventario';
 
             <div class="page-header d-flex align-items-center justify-content-between mb-3">
                 <div class="d-flex align-items-center">
+                    <button class="btn btn-primary d-md-none me-3" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    
                     <a href="inventario.php" class="text-muted me-3"><i class="fas fa-arrow-left"></i></a>
                     <h2 class="titulo-seccion mb-0"><i class="fas fa-laptop text-primary me-2"></i> Computadoras</h2>
                 </div>
@@ -69,9 +73,9 @@ $page = 'inventario';
                     <table id="tablaComputo" class="table table-hover w-100">
                         <thead class="bg-light text-secondary">
                             <tr>
-                                <th><i class="fas fa-barcode"></i> Código / Serie</th>
+                                <th><i class="fas fa-barcode"></i> Código</th>
                                 <th><i class="fas fa-network-wired"></i> Hostname</th>
-                                <th><i class="fas fa-laptop"></i> Equipo / Nombre</th>
+                                <th><i class="fas fa-laptop"></i> Equipo</th>
                                 <th><i class="fas fa-microchip"></i> Hardware</th>
                                 <th><i class="fas fa-map-marker-alt"></i> Ubicación</th>
                                 <th><i class="fas fa-user"></i> Custodio</th>
@@ -96,7 +100,9 @@ $page = 'inventario';
                             ?>
                                 <tr>
                                     <td>
-                                        <div class="fw-bold text-dark"><?php echo $fila['codigo_patrimonial']; ?></div>
+                                        <div class="fw-bold text-dark">
+                                            <?php echo str_replace('S/N', 'S/C', $fila['codigo_patrimonial']); ?>
+                                        </div>
                                         <small class="text-muted font-monospace d-block">
                                             SN: <?php echo $fila['serie'] ? $fila['serie'] : 'S/N'; ?>
                                         </small>
@@ -252,7 +258,4 @@ $page = 'inventario';
         }); 
     </script>
 </body>
-</html>
-</body>
-
 </html>

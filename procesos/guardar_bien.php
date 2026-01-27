@@ -1,5 +1,5 @@
 <?php
-// procesos/guardar_bien.php
+// procesos/guardar_bien.php - CON AUTO-CORRECCIÓN DE S/N A S/C
 session_start();
 include '../conexion.php';
 
@@ -9,7 +9,14 @@ if (file_exists('../phpqrcode.php')) { include '../phpqrcode.php'; $tiene_librer
 elseif (file_exists('../phpqrcode/qrlib.php')) { include '../phpqrcode/qrlib.php'; $tiene_libreria_qr = true; }
 
 // 1. Datos básicos
-$codigo = trim($_POST['codigo']);
+// AQUI ESTA EL TRUCO: Reemplazamos S/N por S/C antes de nada
+$codigo_input = trim($_POST['codigo']);
+$codigo = str_replace('S/N', 'S/C', $codigo_input); // <--- ESTA LINEA HACE LA MAGIA
+// Si el usuario lo dejó vacío o solo puso "S/N", lo forzamos a S/C
+if(empty($codigo) || $codigo == 'S/N') {
+    $codigo = 'S/C'; 
+}
+
 $categoria = $_POST['categoria'];
 $descripcion = strtoupper(trim($_POST['descripcion']));
 $marca = strtoupper(trim($_POST['marca']));
@@ -31,9 +38,10 @@ $mac = !empty($_POST['mac']) ? $_POST['mac'] : NULL;
 $informe_baja = NULL;
 if ($estado == 'Baja' && isset($_FILES['archivo_baja']) && $_FILES['archivo_baja']['error'] == 0) {
     $dir_subida = '../docs/bajas/';
-    if (!file_exists($dir_subida)) mkdir($dir_subida, 0777, true); // Crear carpeta si no existe
+    if (!file_exists($dir_subida)) mkdir($dir_subida, 0777, true);
 
     $ext = pathinfo($_FILES['archivo_baja']['name'], PATHINFO_EXTENSION);
+    // Limpiamos el nombre del archivo usando el código corregido
     $nombre_archivo = "BAJA_" . preg_replace('/[^A-Za-z0-9]/', '', $codigo) . "_" . time() . "." . $ext;
     
     if (move_uploaded_file($_FILES['archivo_baja']['tmp_name'], $dir_subida . $nombre_archivo)) {
@@ -68,6 +76,8 @@ if ($stmt->execute()) {
         $tempDir = '../img/qr/';
         if (!file_exists($tempDir)) mkdir($tempDir, 0777, true);
         $fileName = preg_replace('/[^A-Za-z0-9\-]/', '', $codigo) . '.png';
+        
+        // Redirigir a ver_activo.php para mostrar detalles al escanear
         QRcode::png("http://" . $_SERVER['HTTP_HOST'] . "/patrimoniogore/ver_activo.php?id=" . $id_insertado, $tempDir . $fileName, QR_ECLEVEL_L, 10, 2);
     }
     
@@ -76,7 +86,13 @@ if ($stmt->execute()) {
     $detalles = "Agregó activo: $descripcion - Cod: $codigo. Estado: $estado";
     registrar_auditoria($conn, 'CREAR', $detalles);
 
-    header("Location: ../inventario.php?status=success");
+    // Redirección inteligente (opcional, si quieres volver a la categoría)
+    $pag_destino = '../inventario.php';
+    if($categoria == 1) $pag_destino = '../computacion.php';
+    if($categoria == 2) $pag_destino = '../impresora.php';
+    if($categoria == 3) $pag_destino = '../monitor.php';
+
+    header("Location: $pag_destino?status=success");
     exit();
 } else {
     echo "Error BD: " . $stmt->error;

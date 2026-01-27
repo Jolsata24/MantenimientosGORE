@@ -5,7 +5,11 @@
 $rol = isset($_SESSION['rol']) ? strtolower($_SESSION['rol']) : ''; 
 ?>
 
-<div class="d-flex flex-column flex-shrink-0 text-white sidebar-container">
+<div class="d-flex flex-column flex-shrink-0 text-white sidebar sidebar-container">
+    
+    <div class="d-md-none text-end p-2">
+        <button class="btn btn-sm text-white" onclick="toggleSidebar()"><i class="fas fa-times fa-lg"></i></button>
+    </div>
 
     <a href="index.php" class="d-flex align-items-center text-white text-decoration-none sidebar-logo-area">
         <img src="img/logo_gore.png" alt="GORE Pasco" width="50" height="50" class="me-3 bg-white rounded-circle p-1 shadow-sm" style="object-fit: contain;">
@@ -88,3 +92,20 @@ $rol = isset($_SESSION['rol']) ? strtolower($_SESSION['rol']) : '';
         </div>
     </div>
 </div>
+
+<div id="overlay-sidebar" onclick="toggleSidebar()"></div>
+
+<script>
+    function toggleSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('overlay-sidebar');
+        
+        // Verificamos si los elementos existen antes de intentar usarlos
+        if (sidebar && overlay) {
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        } else {
+            console.error("No se encontraron los elementos sidebar u overlay");
+        }
+    }
+</script>

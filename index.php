@@ -10,7 +10,7 @@ if (!isset($_SESSION['logeado']) || $_SESSION['logeado'] !== true) {
 
 $page = 'dashboard';
 
-// --- CONSULTAS KPI (Tarjetas Superiores) ---
+// --- CONSULTAS KPI ---
 $sql_total = "SELECT COUNT(*) as total FROM bienes";
 $row_total = $conn->query($sql_total)->fetch_assoc();
 
@@ -20,8 +20,7 @@ $row_malo = $conn->query($sql_malo)->fetch_assoc();
 $sql_cat_total = "SELECT COUNT(*) as total FROM categorias";
 $row_cat = $conn->query($sql_cat_total)->fetch_assoc();
 
-// --- CONSULTAS PARA GRÁFICOS (Traídas de reportes.php) ---
-// 1. Gráfico de Estados
+// --- DATOS GRÁFICOS ---
 $sql_estados = "SELECT estado_fisico, COUNT(*) as cantidad FROM bienes GROUP BY estado_fisico";
 $res_estados = $conn->query($sql_estados);
 $labels_estado = []; $data_estado = [];
@@ -30,7 +29,6 @@ while($row = $res_estados->fetch_assoc()) {
     $data_estado[] = $row['cantidad'];
 }
 
-// 2. Gráfico de Categorías (Top 5 con más bienes)
 $sql_graf_cat = "SELECT c.nombre, COUNT(b.id_bien) as cantidad 
                  FROM bienes b JOIN categorias c ON b.id_categoria = c.id_categoria 
                  GROUP BY c.nombre ORDER BY cantidad DESC LIMIT 5";
@@ -48,42 +46,22 @@ while($row = $res_graf_cat->fetch_assoc()) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | GORE Pasco</title>
-    
     <link rel="icon" type="image/png" href="img/logo_gore.png"> 
-    <link rel="icon" type="image/png" href="img/logo_gore.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <link rel="stylesheet" href="css/estilos.css">
     <link rel="stylesheet" href="css/index.css">
-    <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#00609C">
-<link rel="apple-touch-icon" href="img/logo_gore.png">
-
-<script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-            navigator.serviceWorker.register('sw.js').then(function(registration) {
-                console.log('ServiceWorker GORE registrado con éxito: ', registration.scope);
-            }, function(err) {
-                console.log('Fallo al registrar ServiceWorker: ', err);
-            });
-        });
-    }
-</script>
 </head>
 <body>
 
     <?php include 'sidebar.php'; ?>
     
-    <div class="overlay" id="overlay"></div>
-
     <div class="main-content">
         <div class="container-fluid">
             
-            <div class="d-flex justify-content-between align-items-center page-header">
+            <div class="d-flex justify-content-between align-items-center page-header mb-4">
                 <div class="d-flex align-items-center">
-                    <button class="btn btn-primary d-md-none me-3" id="btnMenu">
+                    <button class="btn btn-primary d-md-none me-3" onclick="toggleSidebar()">
                         <i class="fas fa-bars"></i>
                     </button>
                     <h2 class="fw-bold mb-0">Tablero de Control</h2>
@@ -151,7 +129,7 @@ while($row = $res_graf_cat->fetch_assoc()) {
                 </div>
             </div>
 
-            <div class="row mt-4">
+            <div class="row mt-4 mb-4">
                 <div class="col-12">
                     <div class="card content-card">
                         <div class="card-body p-0">
@@ -181,9 +159,7 @@ while($row = $res_graf_cat->fetch_assoc()) {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
-        // --- 1. CONFIGURACIÓN DE GRÁFICOS ---
-        
-        // Gráfico de Barras (Categorías)
+        // CONFIGURACIÓN DE GRÁFICOS
         const ctxCat = document.getElementById('chartCategorias').getContext('2d');
         new Chart(ctxCat, {
             type: 'bar',
@@ -204,7 +180,6 @@ while($row = $res_graf_cat->fetch_assoc()) {
             }
         });
 
-        // Gráfico de Dona (Estados)
         const ctxEst = document.getElementById('chartEstados').getContext('2d');
         new Chart(ctxEst, {
             type: 'doughnut',
@@ -221,21 +196,6 @@ while($row = $res_graf_cat->fetch_assoc()) {
                 maintainAspectRatio: false,
                 plugins: { legend: { position: 'bottom' } }
             }
-        });
-
-        // --- 2. LÓGICA DEL MENÚ MÓVIL ---
-        const btnMenu = document.getElementById('btnMenu');
-        const sidebar = document.querySelector('.sidebar-container');
-        const overlay = document.getElementById('overlay');
-
-        btnMenu.addEventListener('click', () => {
-            sidebar.classList.toggle('active'); // Muestra/Oculta sidebar
-            overlay.classList.toggle('active'); // Muestra/Oculta fondo oscuro
-        });
-
-        overlay.addEventListener('click', () => {
-            sidebar.classList.remove('active');
-            overlay.classList.remove('active');
         });
     </script>
 </body>

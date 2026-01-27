@@ -137,7 +137,58 @@ body {
     display: block;
 }
 
-/* Ajuste para el botón hamburguesa en desktop (ocultarlo bien) */
-@media (min-width: 769px) {
-    .overlay { display: none !important; }
+/* --- RESPONSIVE DESIGN (MÓVIL) --- */
+@media (max-width: 768px) {
+    
+    /* 1. Ocultar Sidebar por defecto moviéndolo a la izquierda */
+    .sidebar {
+        margin-left: -260px; /* Ajusta según el ancho real de tu sidebar */
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        z-index: 1050; /* Por encima de todo */
+        transition: all 0.3s;
+        box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+    }
+
+    /* Clase para mostrar el sidebar cuando se activa */
+    .sidebar.active {
+        margin-left: 0;
+    }
+
+    /* 2. El contenido principal ocupa todo el ancho (sin margen izquierdo) */
+    .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding: 15px; /* Un poco menos de padding en móvil */
+    }
+
+    /* 3. Ajustes de la tabla para que no se rompa */
+    .card-tabla {
+        padding: 10px !important;
+    }
+    
+    /* Títulos más pequeños */
+    .titulo-seccion {
+        font-size: 1.5rem;
+    }
+
+    /* Botón flotante para abrir menú (Opcional, si no lo pones en el header) */
+    .btn-menu-float {
+        display: block;
+    }
+    
+    /* Fondo oscuro al abrir menú */
+    #overlay-sidebar {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        background: rgba(0,0,0,0.5);
+        z-index: 1040;
+    }
+    #overlay-sidebar.active {
+        display: block;
+    }
 }

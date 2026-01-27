@@ -63,7 +63,7 @@ $page = 'inventario';
                     <table id="tablaMonitores" class="table table-hover w-100">
                         <thead class="bg-light text-secondary">
                             <tr>
-                                <th><i class="fas fa-barcode"></i> Código / Serie</th>
+                                <th><i class="fas fa-barcode"></i> Código</th>
                                 <th><i class="fas fa-desktop"></i> Marca / Modelo</th>
                                 <th><i class="fas fa-palette"></i> Color</th>
                                 <th><i class="fas fa-map-marker-alt"></i> Ubicación</th>

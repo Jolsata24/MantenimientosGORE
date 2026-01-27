@@ -63,9 +63,9 @@ $page = 'inventario';
                     <table id="tablaImpresoras" class="table table-hover w-100">
                         <thead class="bg-light text-secondary">
                             <tr>
-                                <th><i class="fas fa-barcode"></i> Código / Serie</th>
+                                <th><i class="fas fa-barcode"></i> Código</th>
                                 <th><i class="fas fa-print"></i> Equipo</th>
-                                <th><i class="fas fa-palette"></i> Tipo / Color</th>
+                                <th><i class="fas fa-palette"></i>Color</th>
                                 <th><i class="fas fa-network-wired"></i> Conexión</th>
                                 <th><i class="fas fa-map-marker-alt"></i> Ubicación</th>
                                 <th>Estado</th>
