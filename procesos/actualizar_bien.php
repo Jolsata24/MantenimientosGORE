@@ -1,5 +1,5 @@
 <?php
-// procesos/actualizar_bien.php - CON REDIRECCIÓN INTELIGENTE
+// procesos/actualizar_bien.php - CORREGIDO
 session_start();
 include '../conexion.php';
 
@@ -13,6 +13,7 @@ $modelo = strtoupper(trim($_POST['modelo']));
 $serie = strtoupper(trim($_POST['serie']));
 $estado = $_POST['estado'];
 $ubicacion = strtoupper(trim($_POST['ubicacion']));
+// Corrección: id_personal debe ser NULL si viene vacío, pero para la BD se maneja en el bind
 $id_personal = !empty($_POST['id_personal']) ? $_POST['id_personal'] : NULL;
 $color = !empty($_POST['color']) ? $_POST['color'] : NULL;
 
@@ -43,7 +44,7 @@ if ($estado == 'Baja' && isset($_FILES['archivo_baja']) && $_FILES['archivo_baja
 // 3. ACTUALIZACIÓN EN BASE DE DATOS
 
 if ($subio_archivo) {
-    // OPCIÓN A: Con archivo nuevo
+    // OPCIÓN A: Con archivo nuevo (18 parámetros)
     $sql = "UPDATE bienes SET 
             id_categoria = ?, 
             codigo_patrimonial = ?,  
@@ -65,15 +66,30 @@ if ($subio_archivo) {
             WHERE id_bien = ?";
     
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("isssssssissssssssi", 
-        $categoria, $codigo, $descripcion, $color, $marca, $modelo, $serie, $estado, $ubicacion, $id_personal,
-        $procesador, $ram, $disco, $so, $ip, $mac, 
+    // 18 letras: i (cat), sssssss (datos), s (ubic), i (per), ssssss (specs), s (file), i (id)
+    $stmt->bind_param("issssssssisssssssi", 
+        $categoria, 
+        $codigo, 
+        $descripcion, 
+        $color, 
+        $marca, 
+        $modelo, 
+        $serie, 
+        $estado, 
+        $ubicacion,   // string
+        $id_personal, // integer
+        $procesador, 
+        $ram, 
+        $disco, 
+        $so, 
+        $ip, 
+        $mac, 
         $nombre_archivo, 
         $id_bien
     );
 
 } else {
-    // OPCIÓN B: Sin archivo (Mantiene el anterior)
+    // OPCIÓN B: Sin archivo (17 parámetros)
     $sql = "UPDATE bienes SET 
             id_categoria = ?, 
             codigo_patrimonial = ?, 
@@ -94,9 +110,24 @@ if ($subio_archivo) {
             WHERE id_bien = ?";
     
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("isssssssisssssssi", 
-        $categoria, $codigo, $descripcion, $color, $marca, $modelo, $serie, $estado, $ubicacion, $id_personal,
-        $procesador, $ram, $disco, $so, $ip, $mac, 
+    // 17 letras: i (cat), sssssss (datos), s (ubic), i (per), ssssss (specs), i (id)
+    $stmt->bind_param("issssssssissssssi", 
+        $categoria, 
+        $codigo, 
+        $descripcion, 
+        $color, 
+        $marca, 
+        $modelo, 
+        $serie, 
+        $estado, 
+        $ubicacion,   // string
+        $id_personal, // integer
+        $procesador, 
+        $ram, 
+        $disco, 
+        $so, 
+        $ip, 
+        $mac, 
         $id_bien
     );
 }
@@ -121,7 +152,6 @@ if ($stmt->execute()) {
         case 3: // Monitores
             $pagina_destino = '../monitor.php';
             break;
-        // Puedes agregar más casos aquí si creas más páginas (ej. case 4 para proyectores)
     }
 
     // Redirigimos a la página correcta manteniendo el mensaje de éxito
