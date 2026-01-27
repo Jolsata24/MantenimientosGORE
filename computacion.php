@@ -77,7 +77,7 @@ $page = 'inventario';
                                 <th><i class="fas fa-barcode"></i> Código</th>
                                 <th><i class="fas fa-network-wired"></i> Hostname</th>
                                 <th><i class="fas fa-laptop"></i> Equipo</th>
-                                <th><i class="fas fa-microchip"></i> Hardware</th>
+                                <th><i class="fas fa-microchip"></i> Hardware (Semáforo)</th>
                                 <th><i class="fas fa-map-marker-alt"></i> Ubicación</th>
                                 <th><i class="fas fa-user"></i> Custodio</th>
                                 <th>Estado</th>
@@ -95,9 +95,27 @@ $page = 'inventario';
 
                             while ($fila = $res->fetch_assoc()):
                                 $estado_bd = trim($fila['estado_fisico']);
-                                $clase = 'estado-regular';
-                                if (stripos($estado_bd, 'Bueno') !== false) $clase = 'estado-bueno';
-                                elseif (stripos($estado_bd, 'Malo') !== false || stripos($estado_bd, 'Baja') !== false) $clase = 'estado-malo';
+                                
+                                // --- LÓGICA DEL SEMÁFORO DE OBSOLESCENCIA ---
+                                // 1. Limpiar valores para obtener solo números
+                                $ram_num = intval(preg_replace('/[^0-9]/', '', $fila['ram'])); 
+                                $disco_num = intval(preg_replace('/[^0-9]/', '', $fila['disco']));
+                                if (stripos($fila['disco'], 'TB') !== false) $disco_num *= 1024;
+
+                                // 2. Determinar Color RAM
+                                $clase_ram = 'sem-alerta'; // Amarillo por defecto (8GB - 12GB)
+                                if ($ram_num >= 16) $clase_ram = 'sem-optimo'; // Verde
+                                elseif ($ram_num < 8) $clase_ram = 'sem-critico'; // Rojo
+
+                                // 3. Determinar Color DISCO
+                                $clase_disco = 'sem-alerta'; 
+                                if ($disco_num > 480) $clase_disco = 'sem-optimo'; // Verde (>480GB)
+                                elseif ($disco_num < 240) $clase_disco = 'sem-critico'; // Rojo (<240GB)
+
+                                // 4. Lógica de Estado Físico
+                                $clase_estado = 'estado-regular';
+                                if (stripos($estado_bd, 'Bueno') !== false) $clase_estado = 'estado-bueno';
+                                elseif (stripos($estado_bd, 'Malo') !== false || stripos($estado_bd, 'Baja') !== false) $clase_estado = 'estado-malo';
                             ?>
                                 <tr>
                                     <td>
@@ -123,18 +141,28 @@ $page = 'inventario';
                                             <span class="text-muted small">-</span>
                                         <?php endif; ?>
                                     </td>
+                                    
                                     <td>
                                         <div class="d-flex flex-column gap-1">
                                             <span class="badge bg-light text-dark border text-start fw-normal" title="Procesador">
                                                 <i class="fas fa-microchip text-secondary me-1"></i>
                                                 <?php echo !empty($fila['procesador']) ? substr($fila['procesador'], 0, 20) . '...' : '-'; ?>
                                             </span>
+                                            
                                             <div class="d-flex gap-1">
-                                                <span class="badge bg-success bg-opacity-10 text-success border border-success px-2">RAM: <?php echo !empty($fila['ram']) ? $fila['ram'] : '-'; ?></span>
-                                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-2">HD: <?php echo !empty($fila['disco']) ? $fila['disco'] : '-'; ?></span>
+                                                <span class="badge <?php echo $clase_ram; ?> px-2" title="Memoria RAM">
+                                                    <?php if($clase_ram == 'sem-critico'): ?><i class="fas fa-arrow-down small me-1"></i><?php endif; ?>
+                                                    RAM: <?php echo !empty($fila['ram']) ? $fila['ram'] : '-'; ?>
+                                                </span>
+                                                
+                                                <span class="badge <?php echo $clase_disco; ?> px-2" title="Almacenamiento">
+                                                     <?php if($clase_disco == 'sem-critico'): ?><i class="fas fa-hdd small me-1"></i><?php endif; ?>
+                                                    HD: <?php echo !empty($fila['disco']) ? $fila['disco'] : '-'; ?>
+                                                </span>
                                             </div>
                                         </div>
                                     </td>
+
                                     <td>
                                         <div class="text-truncate-2 small text-secondary" title="<?php echo $fila['ubicacion']; ?>">
                                             <?php echo !empty($fila['ubicacion']) ? $fila['ubicacion'] : '<span class="text-muted fst-italic">Sin asignar</span>'; ?>
@@ -156,7 +184,10 @@ $page = 'inventario';
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <span class="badge-estado <?php echo $clase; ?>">
+                                        <span class="badge-estado <?php echo $clase_estado; ?>">
+                                            <?php if($clase_estado == 'estado-malo') echo '<span class="dot-status dot-rojo"></span>'; ?>
+                                            <?php if($clase_estado == 'estado-regular') echo '<span class="dot-status dot-amarillo"></span>'; ?>
+                                            <?php if($clase_estado == 'estado-bueno') echo '<span class="dot-status dot-verde"></span>'; ?>
                                             <?php echo ucfirst(strtolower($estado_bd)); ?>
                                         </span>
                                     </td>

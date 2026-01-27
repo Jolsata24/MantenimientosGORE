@@ -239,8 +239,9 @@ if ($q_a) {
                             <label class="form-label">Color / Tipo</label>
                             <select class="form-select" name="color" id="edit_color">
                                 <option value="">Seleccione...</option>
-                                <option value="Monocromático (B/N)">Monocromático (B/N)</option>
-                                <option value="Color">Color</option>
+                                <option value="Negro">Negro</option>
+                                <option value="Gris">Gris</option>
+                                <option value="Blanco">Blanco</option>
                             </select>
                         </div>
                     </div>

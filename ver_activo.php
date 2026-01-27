@@ -1,5 +1,5 @@
 <?php
-// ver_activo.php
+// ver_activo.php - ACTUALIZADO CON BOTÓN ACTA
 include 'conexion.php';
 session_start();
 
@@ -50,6 +50,7 @@ if (strcasecmp($estado, 'Malo') == 0 || strcasecmp($estado, 'Baja') == 0) $badge
 <head>
     <meta charset="UTF-8">
     <title>Ficha Técnica | <?php echo $fila['codigo_patrimonial']; ?></title>
+    <link rel="icon" type="image/png" href="img/logo_gore.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/estilos.css">
@@ -78,14 +79,23 @@ if (strcasecmp($estado, 'Malo') == 0 || strcasecmp($estado, 'Baja') == 0) $badge
     <div class="main-content">
         <div class="container py-4">
             
-            <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                 <h3 class="mb-0 fw-bold text-dark">
                     <a href="javascript:history.back()" class="text-decoration-none text-muted me-2"><i class="fas fa-arrow-left"></i></a>
                     Ficha del Activo
                 </h3>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalMantenimiento">
-                    <i class="fas fa-plus-circle me-2"></i> Nueva Intervención
-                </button>
+                
+                <div class="d-flex gap-2">
+                    <?php if(!empty($fila['id_personal'])): ?>
+                        <a href="procesos/generar_acta.php?id=<?php echo $id_bien; ?>" target="_blank" class="btn btn-danger">
+                            <i class="fas fa-file-pdf me-2"></i> Generar Acta
+                        </a>
+                    <?php endif; ?>
+
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalMantenimiento">
+                        <i class="fas fa-plus-circle me-2"></i> Nueva Intervención
+                    </button>
+                </div>
             </div>
 
             <div class="row">
@@ -244,6 +254,7 @@ if (strcasecmp($estado, 'Malo') == 0 || strcasecmp($estado, 'Baja') == 0) $badge
                                         <small class="text-muted"><?php echo $fila['oficina']; ?></small>
                                     <?php else: ?>
                                         <div class="valor-dato text-muted">Sin asignar</div>
+                                        <small class="text-danger"><i class="fas fa-exclamation-triangle"></i> Asigne un custodio para generar acta.</small>
                                     <?php endif; ?>
                                 </div>
                             </div>
@@ -336,7 +347,6 @@ if (strcasecmp($estado, 'Malo') == 0 || strcasecmp($estado, 'Baja') == 0) $badge
                                 <option value="" selected disabled>Seleccione un técnico...</option>
                                 <?php 
                                 if ($res_users && $res_users->num_rows > 0) {
-                                    // Aseguramos que el puntero esté al inicio
                                     $res_users->data_seek(0);
                                     while($u = $res_users->fetch_assoc()) {
                                         echo '<option value="'.$u['nombre_usuario'].'">'.$u['nombre_usuario'].'</option>';
