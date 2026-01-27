@@ -45,6 +45,7 @@ if ($subio_archivo) {
     // --- OPCIÓN A: SI SUBIÓ ARCHIVO (Actualizamos todo + informe_baja) ---
     $sql = "UPDATE bienes SET 
             id_categoria = ?, 
+            codigo_patrimonial = '$codigo',  /* <--- AGREGAR ESTA LÍNEA */
             descripcion = ?,
             color = ?,  
             marca = ?, 

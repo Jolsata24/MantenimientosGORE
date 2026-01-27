@@ -1,4 +1,7 @@
 <?php
+// modales_inventario.php
+// V40.0 - BUSCADOR POR LETRA (SELECT2) INTEGRADO
+
 // 1. Cargar Personal
 $opt_personal = '<option value="">-- Sin Asignar (Libre) --</option>';
 $q_p = $conn->query("SELECT * FROM personal WHERE estado = 'Activo' ORDER BY apellidos ASC");
@@ -27,7 +30,7 @@ if ($q_a) {
 }
 ?>
 
-<div class="modal fade" id="modalNuevaCategoria" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalNuevaCategoria" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
@@ -67,7 +70,7 @@ if ($q_a) {
     </div>
 </div>
 
-<div class="modal fade" id="modalAgregar" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalAgregar" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
@@ -122,13 +125,18 @@ if ($q_a) {
                             <label class="form-label">N° Serie</label>
                             <input type="text" name="serie" class="form-control">
                         </div>
+                        
                         <div class="col-md-4">
                             <label class="form-label">Ubicación Física</label>
-                            <select name="ubicacion" class="form-select"><?php echo $opt_ubicacion; ?></select>
+                            <select name="ubicacion" class="form-select select-buscable">
+                                <?php echo $opt_ubicacion; ?>
+                            </select>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Custodio</label>
-                            <select name="id_personal" class="form-select"><?php echo $opt_personal; ?></select>
+                            <select name="id_personal" class="form-select select-buscable">
+                                <?php echo $opt_personal; ?>
+                            </select>
                         </div>
                     </div>
 
@@ -154,7 +162,7 @@ if ($q_a) {
     </div>
 </div>
 
-<div class="modal fade" id="modalEditar" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalEditar" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-warning">
@@ -172,7 +180,7 @@ if ($q_a) {
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-bold">Cod. Patrimonial</label>
-                            <input type="text" name="codigo" id="edit_codigo" class="form-control" readonly style="background-color: #e9ecef;">
+                            <input type="text" name="codigo" id="edit_codigo" class="form-control" required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-bold">Estado Físico</label>
@@ -211,13 +219,18 @@ if ($q_a) {
                             <label class="form-label">N° Serie</label>
                             <input type="text" name="serie" id="edit_serie" class="form-control">
                         </div>
+                        
                         <div class="col-md-4">
                             <label class="form-label">Ubicación Física</label>
-                            <select name="ubicacion" id="edit_ubicacion" class="form-select"><?php echo $opt_ubicacion; ?></select>
+                            <select name="ubicacion" id="edit_ubicacion" class="form-select select-buscable">
+                                <?php echo $opt_ubicacion; ?>
+                            </select>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Custodio</label>
-                            <select name="id_personal" id="edit_personal" class="form-select"><?php echo $opt_personal; ?></select>
+                            <select name="id_personal" id="edit_personal" class="form-select select-buscable">
+                                <?php echo $opt_personal; ?>
+                            </select>
                         </div>
                     </div>
 
@@ -255,6 +268,27 @@ if ($q_a) {
 </div>
 
 <script>
+    $(document).ready(function() {
+        // --- 1. ACTIVAR BUSCADOR EN EL MODAL 'AGREGAR' ---
+        $('#modalAgregar .select-buscable').select2({
+            theme: 'bootstrap-5',
+            dropdownParent: $('#modalAgregar'), // Obligatorio para que funcione dentro del modal
+            width: '100%',
+            placeholder: 'Escriba para buscar...',
+            allowClear: true
+        });
+
+        // --- 2. ACTIVAR BUSCADOR EN EL MODAL 'EDITAR' ---
+        $('#modalEditar .select-buscable').select2({
+            theme: 'bootstrap-5',
+            dropdownParent: $('#modalEditar'), // Obligatorio
+            width: '100%',
+            placeholder: 'Escriba para buscar...',
+            allowClear: true
+        });
+    });
+
+    // --- LÓGICA DE MOSTRAR/OCULTAR BAJA ---
     function toggleBaja(modo) {
         let select = document.getElementById(modo + '_estado');
         let div = document.getElementById('div_archivo_' + modo);
@@ -263,6 +297,7 @@ if ($q_a) {
         }
     }
 
+    // --- CARGAR DATOS AL EDITAR ---
     function cargarDatosEditar(json) {
         document.getElementById('edit_id_bien').value = json.id_bien;
         document.getElementById('edit_codigo').value = json.codigo_patrimonial;
@@ -271,15 +306,19 @@ if ($q_a) {
         document.getElementById('edit_marca').value = json.marca;
         document.getElementById('edit_modelo').value = json.modelo;
         document.getElementById('edit_serie').value = json.serie;
-        document.getElementById('edit_ubicacion').value = json.ubicacion;
-        document.getElementById('edit_personal').value = json.id_personal ? json.id_personal : "";
-        document.getElementById('edit_color').value = json.color ? json.color : "";
+        
+        // ** ACTUALIZAR LOS SELECTS CON BUSCADOR (SELECT2) **
+        // Es vital usar .trigger('change') para que se refresque visualmente
+        $('#edit_ubicacion').val(json.ubicacion).trigger('change');
+        $('#edit_personal').val(json.id_personal ? json.id_personal : "").trigger('change');
 
+        document.getElementById('edit_color').value = json.color ? json.color : "";
+        
         // Ocultar color si es PC
         var divColor = document.getElementById('div_color_container');
         if(divColor) divColor.style.display = (json.id_categoria == 1) ? 'none' : 'block';
 
-        // Estado
+        // Lógica Estado Físico
         let estado = json.estado_fisico.charAt(0).toUpperCase() + json.estado_fisico.slice(1).toLowerCase();
         let selectEstado = document.getElementById('edit_estado');
         let options = Array.from(selectEstado.options).map(opt => opt.value);
@@ -291,7 +330,7 @@ if ($q_a) {
 
         toggleBaja('edit');
 
-        // Archivo
+        // Link Archivo Baja
         let divLink = document.getElementById('link_archivo_actual');
         if (json.informe_baja) {
             divLink.innerHTML = '<span class="text-success"><i class="fas fa-check-circle me-1"></i>Archivo actual:</span> <a href="docs/bajas/' + json.informe_baja + '" target="_blank" class="fw-bold text-decoration-underline">Ver Documento</a>';

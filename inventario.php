@@ -1,7 +1,9 @@
 <?php
 // inventario.php
-// CORRECCIÓN IMPORTANTE: La conexión debe ir PRIMERO para evitar el error "Call to query() on null"
+// CORRECCIÓN IMPORTANTE: La conexión debe ir PRIMERO
+
 include 'conexion.php'; 
+
 session_start();
 
 // Validación de seguridad
@@ -23,6 +25,10 @@ $page = 'inventario'; // Variable para marcar activo el sidebar
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+
     <link rel="stylesheet" href="css/estilos.css">
     <link rel="stylesheet" href="css/inventario.css">
 </head>
@@ -54,8 +60,7 @@ $page = 'inventario'; // Variable para marcar activo el sidebar
 
             <div class="row g-4 mt-2">
                 <?php
-                // CONSULTA DINÁMICA: Trae todas las categorías activas de la BD
-                // Esto hará que aparezcan solas las nuevas categorías que crees.
+                // CONSULTA DINÁMICA DE CATEGORÍAS
                 $sql_cats = "SELECT * FROM categorias WHERE estado = 'Activo' ORDER BY id_categoria ASC";
                 $res_cats = $conn->query($sql_cats);
 
@@ -63,19 +68,13 @@ $page = 'inventario'; // Variable para marcar activo el sidebar
                     while ($cat = $res_cats->fetch_assoc()):
                         $id = $cat['id_categoria'];
                         
-                        // Contar cuántos equipos hay en esta categoría
                         $sql_count = "SELECT COUNT(*) as t FROM bienes WHERE id_categoria = $id";
                         $total = $conn->query($sql_count)->fetch_assoc()['t'];
                         
-                        // Definir a qué archivo redirigir
-                        // Las categorías 1, 2 y 3 tienen archivos personalizados.
-                        // Las nuevas usarán el archivo genérico "ver_categoria.php".
                         $link = "ver_categoria.php?id=$id";
                         if($id == 1) $link = "computacion.php";
                         if($id == 2) $link = "impresora.php";
                         if($id == 3) $link = "monitor.php";
-                        // Si creaste proyectores.php manualmente para el ID 4, descomenta esto:
-                        // if($id == 4) $link = "proyectores.php"; 
                 ?>
                 <div class="col-md-3">
                     <a href="<?php echo $link; ?>" class="text-decoration-none">
@@ -109,16 +108,19 @@ $page = 'inventario'; // Variable para marcar activo el sidebar
         </div>
     </div>
 
-    <?php include 'modales_inventario.php'; ?>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <?php include 'modales_inventario.php'; ?>
 
     <script>
         // Lógica del Menú Móvil
         const btnMenu = document.getElementById('btnMenu');
         const sidebar = document.querySelector('.sidebar-container');
-        const overlay = document.getElementById('overlay'); // Asegúrate de tener este div en el HTML si usas sidebar móvil
+        const overlay = document.getElementById('overlay');
 
         if(btnMenu){
             btnMenu.addEventListener('click', () => {
@@ -127,7 +129,7 @@ $page = 'inventario'; // Variable para marcar activo el sidebar
             });
         }
 
-        // Alertas de SweetAlert según parámetros URL
+        // Alertas de SweetAlert
         const urlParams = new URLSearchParams(window.location.search);
         const status = urlParams.get('status');
 
@@ -139,8 +141,26 @@ $page = 'inventario'; // Variable para marcar activo el sidebar
             Swal.fire({ icon: 'success', title: 'Categoría Creada', text: 'La nueva categoría ya está disponible.', confirmButtonColor: '#28a745' });
         }
         
-        // Limpiar URL
         if (status) window.history.replaceState(null, null, window.location.pathname);
+    </script>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        setTimeout(function() {
+            console.log("🔄 Iniciando sincronización GLPI en segundo plano...");
+            
+            fetch('procesos/importar_glpi.php')
+                .then(response => {
+                    if (response.ok) {
+                        console.log("✅ Sincronización GLPI completada con éxito.");
+                    } else {
+                        console.error("❌ Error al contactar con el importador.");
+                    }
+                })
+                .catch(error => console.error("❌ Error de conexión en autosync:", error));
+                
+        }, 1000); 
+    });
     </script>
 
 </body>
